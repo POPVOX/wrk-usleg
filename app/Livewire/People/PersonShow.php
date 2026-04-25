@@ -47,11 +47,11 @@ class PersonShow extends Component
     public $newAttachment;
     public string $attachmentNotes = '';
 
-    // Project linking
-    public bool $showAddProjectModal = false;
-    public string $projectSearch = '';
-    public ?int $selectedProjectId = null;
-    public string $projectRole = '';
+    // Issue linking
+    public bool $showAddIssueModal = false;
+    public string $issueSearch = '';
+    public ?int $selectedIssueId = null;
+    public string $issueRole = '';
 
     public function mount(Person $person)
     {
@@ -202,47 +202,47 @@ class PersonShow extends Component
             ->get();
     }
 
-    // --- Project Linking ---
-    public function toggleAddProjectModal()
+    // --- Issue Linking ---
+    public function toggleAddIssueModal()
     {
-        $this->showAddProjectModal = !$this->showAddProjectModal;
-        $this->projectSearch = '';
-        $this->selectedProjectId = null;
-        $this->projectRole = '';
+        $this->showAddIssueModal = !$this->showAddIssueModal;
+        $this->issueSearch = '';
+        $this->selectedIssueId = null;
+        $this->issueRole = '';
     }
 
-    public function selectProject(int $projectId)
+    public function selectIssue(int $issueId)
     {
-        $this->selectedProjectId = $projectId;
-        $project = \App\Models\Project::find($projectId);
-        $this->projectSearch = $project ? $project->name : '';
+        $this->selectedIssueId = $issueId;
+        $issue = \App\Models\Issue::find($issueId);
+        $this->issueSearch = $issue ? $issue->name : '';
     }
 
-    public function linkProject()
+    public function linkIssue()
     {
-        if (!$this->selectedProjectId) {
+        if (!$this->selectedIssueId) {
             return;
         }
 
-        if ($this->person->projects()->where('project_id', $this->selectedProjectId)->exists()) {
-            $this->dispatch('notify', type: 'error', message: 'Project already linked.');
+        if ($this->person->issues()->where('issue_id', $this->selectedIssueId)->exists()) {
+            $this->dispatch('notify', type: 'error', message: 'Issue already linked.');
             return;
         }
 
-        $this->person->projects()->attach($this->selectedProjectId, [
-            'role' => $this->projectRole ?: null,
+        $this->person->issues()->attach($this->selectedIssueId, [
+            'role' => $this->issueRole ?: null,
         ]);
 
-        $this->toggleAddProjectModal();
+        $this->toggleAddIssueModal();
         $this->person->refresh();
-        $this->dispatch('notify', type: 'success', message: 'Project linked!');
+        $this->dispatch('notify', type: 'success', message: 'Issue linked!');
     }
 
-    public function unlinkProject(int $projectId)
+    public function unlinkIssue(int $issueId)
     {
-        $this->person->projects()->detach($projectId);
+        $this->person->issues()->detach($issueId);
         $this->person->refresh();
-        $this->dispatch('notify', type: 'success', message: 'Project removed.');
+        $this->dispatch('notify', type: 'success', message: 'Issue removed.');
     }
 
     // --- CRM Methods ---
@@ -354,10 +354,10 @@ class PersonShow extends Component
             ->orderByDesc('created_at')
             ->get();
 
-        $projects = $this->person->projects()->orderBy('name')->get();
+        $issues = $this->person->issues()->orderBy('name')->get();
 
-        $projectResults = $this->projectSearch && strlen($this->projectSearch) >= 2
-            ? \App\Models\Project::where('name', 'like', '%' . $this->projectSearch . '%')
+        $issueResults = $this->issueSearch && strlen($this->issueSearch) >= 2
+            ? \App\Models\Issue::where('name', 'like', '%' . $this->issueSearch . '%')
                 ->where('status', '!=', 'archived')
                 ->limit(10)
                 ->get()
@@ -372,8 +372,8 @@ class PersonShow extends Component
             'topIssues' => $topIssues,
             'organizations' => Organization::orderBy('name')->get(),
             'attachments' => $attachments,
-            'projects' => $projects,
-            'projectResults' => $projectResults,
+            'issues' => $issues,
+            'issueResults' => $issueResults,
             'interactions' => $interactions,
             'owners' => $owners,
             'statuses' => $statuses,

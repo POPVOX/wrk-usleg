@@ -49,9 +49,9 @@ class PressClip extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function projects(): BelongsToMany
+    public function topics(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class, 'press_clip_project');
+        return $this->belongsToMany(Topic::class, 'press_clip_topic');
     }
 
     public function issues(): BelongsToMany

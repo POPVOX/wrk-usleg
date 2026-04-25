@@ -74,8 +74,8 @@
                                 </p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                     {{ $decision->decided_at->format('M j') }}
-                                    @if($decision->project)
-                                        • {{ $decision->project->name }}
+                                    @if($decision->issue)
+                                        • {{ $decision->issue->name }}
                                     @endif
                                 </p>
                             </div>

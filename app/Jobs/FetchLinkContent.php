@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\ProjectDocument;
+use App\Models\IssueDocument;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,7 +29,7 @@ class FetchLinkContent implements ShouldQueue
 
     public function handle(): void
     {
-        $doc = ProjectDocument::find($this->documentId);
+        $doc = IssueDocument::find($this->documentId);
         if (!$doc || $doc->type !== 'link' || empty($doc->url)) {
             return;
         }

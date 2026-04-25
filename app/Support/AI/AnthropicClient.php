@@ -22,7 +22,7 @@ class AnthropicClient
             'x-api-key' => $apiKey,
             'anthropic-version' => self::API_VERSION,
             'Content-Type' => 'application/json',
-        ])->timeout(self::DEFAULT_TIMEOUT)->retry(2, 500);
+        ])->timeout((int) config('ai.timeout', self::DEFAULT_TIMEOUT))->retry(2, 500);
     }
 
     /**
@@ -32,7 +32,7 @@ class AnthropicClient
      */
     public static function send(array $payload): array
     {
-        $model = $payload['model'] ?? self::DEFAULT_MODEL;
+        $model = $payload['model'] ?? config('services.anthropic.model', self::DEFAULT_MODEL);
         $baseKey = 'metrics:ai';
 
         $start = microtime(true);

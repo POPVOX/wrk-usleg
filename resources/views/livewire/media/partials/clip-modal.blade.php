@@ -195,7 +195,7 @@
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pull
                             Quotes</label>
                         <textarea wire:model="clipForm.quotes" rows="2"
-                            placeholder="Notable quotes mentioning POPVOX..."
+                            placeholder="Notable quotes..."
                             class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"></textarea>
                     </div>
 

@@ -283,7 +283,7 @@
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center">
                         <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">0</div>
-                        <div class="text-sm text-gray-600 dark:text-gray-400">Projects (coming soon)</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">Issues (coming soon)</div>
                     </div>
                 </div>
             </div>
@@ -306,23 +306,23 @@
                 </div>
             @endif
 
-            <!-- Projects -->
+            <!-- Issues -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Projects</h4>
-                    <button wire:click="toggleAddProjectModal"
+                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Issues</h4>
+                    <button wire:click="toggleAddIssueModal"
                         class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">+ Add</button>
                 </div>
-                @if($projects->count())
+                @if($issues->count())
                     <div class="space-y-2">
-                        @foreach($projects as $project)
+                        @foreach($issues as $issue)
                             <div class="flex items-center justify-between py-2 group">
                                 <div class="flex-1">
-                                    <a href="{{ route('projects.show', $project) }}" wire:navigate
-                                        class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">{{ $project->name }}</a>
-                                    @if($project->pivot->role)
+                                    <a href="{{ route('issues.show', $issue) }}" wire:navigate
+                                        class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">{{ $issue->name }}</a>
+                                    @if($issue->pivot->role)
                                         <span
-                                            class="ml-2 text-xs px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded">{{ $project->pivot->role }}</span>
+                                            class="ml-2 text-xs px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded">{{ $issue->pivot->role }}</span>
                                     @endif
                                     @php
                                         $statusColors = [
@@ -333,15 +333,15 @@
                                         ];
                                     @endphp
                                     <span
-                                        class="ml-2 text-xs px-1.5 py-0.5 rounded {{ $statusColors[$project->status] ?? 'bg-gray-100' }}">{{ ucfirst($project->status) }}</span>
+                                        class="ml-2 text-xs px-1.5 py-0.5 rounded {{ $statusColors[$issue->status] ?? 'bg-gray-100' }}">{{ ucfirst($issue->status) }}</span>
                                 </div>
-                                <button wire:click="unlinkProject({{ $project->id }})" wire:confirm="Remove from this project?"
+                                <button wire:click="unlinkIssue({{ $issue->id }})" wire:confirm="Remove from this issue?"
                                     class="opacity-0 group-hover:opacity-100 text-red-600 dark:text-red-400 text-xs">×</button>
                             </div>
                         @endforeach
                     </div>
                 @else
-                    <p class="text-gray-500 dark:text-gray-400 text-sm">Not linked to any projects yet.</p>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Not linked to any issues yet.</p>
                 @endif
             </div>
 
@@ -497,26 +497,26 @@
         </div>
     </div>
 
-    <!-- Project Link Modal -->
-    @if($showAddProjectModal)
+    <!-- Issue Link Modal -->
+    @if($showAddIssueModal)
         <div class="fixed inset-0 z-50 overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen px-4">
-                <div class="fixed inset-0 bg-gray-500 bg-opacity-75" wire:click="toggleAddProjectModal"></div>
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75" wire:click="toggleAddIssueModal"></div>
                 <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Link to Project</h3>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Link to Issue</h3>
                     <div class="space-y-4">
                         <div>
-                            <input type="text" wire:model.live.debounce.300ms="projectSearch"
-                                placeholder="Search projects..."
+                            <input type="text" wire:model.live.debounce.300ms="issueSearch"
+                                placeholder="Search issues..."
                                 class="w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                            @if($projectResults->count() && !$selectedProjectId)
+                            @if($issueResults->count() && !$selectedIssueId)
                                 <div
                                     class="mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md max-h-40 overflow-y-auto">
-                                    @foreach($projectResults as $project)
-                                        <button type="button" wire:click="selectProject({{ $project->id }})"
+                                    @foreach($issueResults as $issue)
+                                        <button type="button" wire:click="selectIssue({{ $issue->id }})"
                                             class="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm text-gray-900 dark:text-white">
-                                            {{ $project->name }}
-                                            <span class="text-xs text-gray-500">{{ ucfirst($project->status) }}</span>
+                                            {{ $issue->name }}
+                                            <span class="text-xs text-gray-500">{{ ucfirst($issue->status) }}</span>
                                         </button>
                                     @endforeach
                                 </div>
@@ -525,15 +525,15 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role
                                 (optional)</label>
-                            <input type="text" wire:model="projectRole" placeholder="e.g., Primary Contact, Champion"
+                            <input type="text" wire:model="issueRole" placeholder="e.g., Primary Contact, Champion"
                                 class="mt-1 w-full rounded-md border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                         </div>
                         <div class="flex justify-end gap-3">
-                            <button wire:click="toggleAddProjectModal"
+                            <button wire:click="toggleAddIssueModal"
                                 class="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">Cancel</button>
-                            <button wire:click="linkProject"
+                            <button wire:click="linkIssue"
                                 class="px-4 py-2 text-sm text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-                                @if(!$selectedProjectId) disabled @endif>Link</button>
+                                @if(!$selectedIssueId) disabled @endif>Link</button>
                         </div>
                     </div>
                 </div>

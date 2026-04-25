@@ -1,289 +1,484 @@
-# WRK - Intelligent Workspace for Nonprofit Teams
+# LegiDash
 
-<p align="center">
-  <img src="public/images/wrk_favicon.png" width="80" alt="WRK Logo">
-</p>
+**The command center for legislative offices.**
 
-**WRK** is a comprehensive workspace management platform designed for nonprofit organizations. It streamlines project management, meeting intelligence, funder relations, and team collaboration with AI-powered insights.
+A comprehensive operating system for modern elected officials' offices. Built with Laravel 12, Livewire 3, and Tailwind CSS.
 
----
+## Overview
 
-## 🎯 Core Features
+LegiDash streamlines legislative tracking, stakeholder relationship management, and team collaboration for elected offices. Supports **federal, state, and local** elected offices.
 
-### 📊 Dashboard
-- **At-a-glance overview** of projects, meetings, and tasks
-- **Activity feed** showing recent team actions
-- **Quick stats** for active projects, upcoming meetings, and pending tasks
-- **Role-based views** (Admin vs Team Member)
-- **Reliability banners** that surface AI or calendar sync issues
+> **Note**: LegiDash is focused on **legislative operations and policy work**—not constituent casework or service requests. It helps offices track issues, prepare for meetings, and understand the elected official's policy landscape.
 
-### 📁 Project Management
-- **Hierarchical project structure** with parent/child project nesting
-- **Project workspaces** with dedicated tabs for Overview, Documents, Team, and Settings
-- **Status tracking** (Planning, Active, On Hold, Completed)
-- **Document management** with AI-powered style checking
-- **Team member assignment** and role management
-- **Grant linkage** to track funding sources per project
+> **Beta Status**: Currently in private beta. [Request access](/) on the homepage.
 
-### 👥 People Directory
-- **Contact management** with organization affiliations
-- **Card and table view options** with search and filtering
-- **Dynamic avatar colors** based on name
-- **LinkedIn integration** for professional profiles
-- **Meeting history** tracking per contact
-- **Notes and tags** for relationship management
+## Features
 
-### 🏢 Organizations
-- **Organization profiles** with type classification
-- **Contact associations** showing all people at an org
-- **Meeting history** with the organization
-- **Funder designation** for grant-giving organizations
+### Core Modules
 
-### 📅 Meetings
+#### 🗂️ Issues (Legislative Tracking)
+Track legislation, policy priorities, and office initiatives with a hierarchical issue structure.
 
-#### Calendar Integration
-- **Google Calendar sync** with OAuth authentication
-- **Automatic attendee matching** to People directory
-- **Organization linking** via email domain detection
-- **Extended date range sync** (past month through Q1 2026)
+- **Issue Types**: Bill tracking, policy positions, policy research, internal projects
+- **Priority Levels**: Member Priority, Office Priority, Standard
+- **Legislative Fields**: Bill numbers, Congress session, legislative status, chamber tracking
+- **Workstreams**: Break issues into manageable work streams
+- **Documents**: Attach and organize documents per issue
+- **AI Collaborator**: Get AI assistance for drafting, research, and analysis
 
-#### Meeting Views (4 modes)
-- **Sections View** - Organized by Upcoming, Needs Notes, Completed
-- **List View** - Compact table layout with date, title, org, attendees, status
-- **Cards View** - Rich visual cards in responsive grid
-- **Kanban View** - Horizontal columns by month (7 months ahead)
+#### 👥 People & Organizations (Relationship Management)
+Manage relationships with stakeholders, advocates, lobbyists, agency contacts, and partners.
 
-#### Video Conference Support
-- **Automatic link detection** from Google Meet, Zoom, and Teams
-- **One-click join buttons** with platform-specific icons and colors:
-  - 🔵 Zoom (blue)
-  - 🟢 Google Meet (green)  
-  - 🟣 Microsoft Teams (purple)
-- **Location display** for in-person meetings
+- **Contact Management**: Full contact profiles with interaction history
+- **Organization Tracking**: Track companies, advocacy groups, government agencies, think tanks
+- **Relationship Linking**: Connect people to organizations and issues
+- **Meeting History**: See all interactions with each contact
 
-#### Meeting Prep & Notes (NEW!)
-- **Meeting Prep** (before meeting)
-  - AI-generated preparation briefs via Claude API
-  - Attendee analysis with context from previous meetings
-  - Suggested discussion topics based on relationship history
-  - Key questions to ask
-  - Potential asks to identify
-  - Relevant project context
-  - One-click save to meeting prep notes
-- **Meeting Notes** (during/after meeting)
-  - @ mentions for people, organizations, and staff
-  - Markdown formatting support
-  - AI summary generation
+> **Note**: This is stakeholder/relationship management for policy work, not a constituent services or casework system.
 
-#### Post-Meeting Features
-- **Key Ask tracking** - What did they ask for?
-- **Commitments Made** - What did we promise?
-- **Action items** with assignee and due dates
-- **Attachment uploads** for related documents
+#### 📅 Meetings
+Capture, prepare for, and follow up on meetings.
 
-#### Smart Features
-- **Quick filter tabs** - All, Upcoming, Needs Notes, Completed with counts
-- **Organization and Issue filtering**
-- **Search across meetings**
-- **User timezone support** - Displays dates in your profile's timezone
+- **Meeting Types**: Constituent, stakeholder, committee hearing, floor vote, internal, media, district event
+- **Preparation Tools**: Talking points, briefing materials, participant info
+- **Action Items**: Track follow-ups and assignments
+- **Meeting Notes**: Capture notes with AI transcription support
+- **Calendar Integration**: Google Calendar sync
 
-### 💰 Funders & Reporting
-- **Funder management** with Current and Prospective status
-- **Organization autocomplete** when adding funders
-- **Grant tracking** with:
-  - Grant details (name, amount, dates, status)
-  - Editable grant information at any time
-  - Document uploads (applications, agreements, reports)
-  - AI-powered document insight extraction
-  - Reporting requirements and deadlines
-  - Linked projects per grant
-- **Statistics dashboard** showing:
-  - Total funders count
-  - Current vs Prospective funders
-  - Active funding amounts
-  - Reports due
+#### 📰 Media & Press
+Track media coverage and manage communications.
 
-### 📰 Media & Press ✨ NEW
+- **Press Clips**: Monitor coverage with sentiment analysis (Positive/Neutral/Negative)
+- **Media Outlets**: Track relationships with journalists and outlets
+- **Pitch Tracking**: Manage media pitches and inquiries
+- **Coverage Analytics**: See media trends over time
 
-#### Coverage Tracking
-- **Press clips database** with URL, outlet, journalist, and publish date
-- **Clip types**: Article, Broadcast, Podcast, Opinion, Interview, Mention
-- **Sentiment tracking**: Positive, Neutral, Negative, Mixed
-- **Staff mentions** - Track who was quoted or interviewed
-- **Issue and project linking** for coverage categorization
+#### 🧠 Knowledge Hub
+AI-powered search and insights across all office data.
 
-#### Outbound Pitches
-- **Pitch pipeline** with Kanban and list views
-- **Status tracking**: Draft → Sent → Following Up → Accepted/Published/Declined
-- **Follow-up logging** with dates and notes
-- **Journalist and outlet tracking**
-- **Success rate analytics** (last 90 days)
+- **Semantic Search**: Find information by meaning, not just keywords
+- **Cross-Module Search**: Search across meetings, issues, people, and documents
+- **Recent Insights**: AI-surfaced decisions and important updates
+- **Quick Access**: Fast links to all modules
 
-#### Inbound Inquiries
-- **Media request tracking** with urgency levels (Standard, Urgent, Breaking)
-- **Deadline management** with overdue alerts
-- **Assignment system** - Take/assign inquiries to team members
-- **Response notes** for tracking how we responded
-- **Grouped views** by urgency and status
+#### 📚 Knowledge Base
+Centralized document repository with search.
 
-#### Press Contacts
-- **Journalist directory** powered by People with `is_journalist` flag
-- **Beat tracking** - What topics they cover
-- **Responsiveness rating** (High, Medium, Low)
-- **Relationship stats** - Clips count, pitches sent, inquiries received
+- **Document Library**: Store and organize all office documents
+- **Issue Filtering**: View documents by associated issue
+- **Full-Text Search**: Find content within documents
 
-#### Dashboard
-- **Coverage stats** - Clips this month vs last, positive coverage rate
-- **Top outlets** by coverage volume
-- **Needs attention** - Urgent inquiries, stale pitches, pending clip reviews
+#### 👨‍👩‍👧‍👦 Team Hub
+Coordinate staff activities and workloads.
 
-### 🧠 AI-Powered Features
-- **AI Meeting Prep** ✨ NEW
-  - Generates comprehensive pre-meeting briefs
-  - Analyzes attendees and organization context
-  - Suggests topics based on meeting history
-  - Identifies key questions and potential asks
-  - Pulls relevant project information
-- **Grant Document Analysis**
-  - Extract funder priorities and values
-  - Identify reporting requirements
-  - Parse key dates and milestones
-  - Surface compliance requirements
-- **Document Style Checking**
-  - Alignment with organization style guide
-  - Suggestions for consistency
-- **Report Generation**
-  - AI-assisted progress reports
-  - Funder-aligned content suggestions
-- **Resilient responses**
-  - AI chat and project status reuse cached responses when upstream is unavailable
-  - AI request metrics logged for success/error/latency
-
-### 👥 Team Hub
-- **Team directory** with roles and access levels
-- **Admin management** for elevated permissions
-- **User profiles** with:
-  - Photo, bio, and contact info
-  - Timezone preferences (used throughout app)
-  - Activity history
-
-### 📚 Knowledge Hub
-- **AI-powered search** across meetings, organizations, and projects
-- **Dashboard widgets**:
-  - This Week - Upcoming meetings by day
-  - Needs Attention - Overdue items and meetings needing notes
-  - Active Relationships - Most engaged organizations
-  - Recent Insights - Topics and decisions
-  - Quick Queries - Suggested AI queries
-- **Centralized content repository**
+- **Team Directory**: View all team members and their roles
+- **Workload Visibility**: See who's working on what
+- **Profile Pages**: Individual staff profiles with assignments
 
 ---
 
-## 🔐 Security & Access Control
+### 🏛️ Member Hub
 
-- **Role-based access control** (Admin, Management, Team Member)
-- **Visibility settings** per grant (Management Only / All Team)
-- **Secure authentication** with Laravel Breeze
-- **CSRF protection** and session management
-- **API keys via environment variables** (never hardcoded)
+A comprehensive dashboard providing immediate context about the elected official.
 
----
-
-## 🛠 Technical Stack
-
-- **Backend:** Laravel 12 with Livewire 3
-- **Frontend:** Blade templates with Tailwind CSS
-- **Database:** SQLite (dev) / PostgreSQL (production)
-- **Real-time:** Livewire for reactive UI updates
-- **AI Integration:** Anthropic Claude API (claude-sonnet-4-20250514)
-- **Calendar:** Google Calendar API with OAuth 2.0
-- **Queue System:** Database-backed job queue for async processing
+#### Features:
+- **Member Profile**: Photo, party, district, committee assignments, bio
+- **Real-Time Alerts**: Urgent meetings, negative press, overdue actions
+- **AI Suggestions**: Proactive recommendations based on office activity
+- **Member Location**: Track where the official is (DC/Capitol, District, Traveling) with timezone
+- **Today's Schedule**: Member-required meetings for the day
+- **Stats Dashboard**: Active issues, meetings, pending actions, priorities
+- **Priority Issues**: Quick view of Member and Office priorities
+- **Policy Feedback Summary**: Aggregated themes from constituent communications (not case management)
+- **Communications**: Recent public statements and media pickups
+- **Media Coverage**: 7-day sentiment breakdown
+- **District Events**: Upcoming district engagements
+- **Policy Positions**: Key policy areas with evolution tracking
 
 ---
 
-## 🚀 Getting Started
+### 📋 Member Priorities & Interests
 
-```bash
-# Install dependencies
-composer install
-npm install
+A comprehensive questionnaire system to capture what matters most to the elected official. This information personalizes the Member Hub, informs AI suggestions, and helps new staff understand the official's priorities.
 
-# Environment setup
-cp .env.example .env
-php artisan key:generate
+**Route**: `/setup/priorities`
 
-# Configure required API keys in .env:
-# ANTHROPIC_API_KEY=your_key_here
-# GOOGLE_CLIENT_ID=your_client_id
-# GOOGLE_CLIENT_SECRET=your_client_secret
+#### Multi-Level Support
 
-# Database setup
-php artisan migrate
-php artisan db:seed
+The questionnaire adapts based on government level (federal, state, or local):
 
-# Start development server
-npm run dev
-php artisan serve
+| Aspect | Federal | State Legislature | Local Government |
+|--------|---------|-------------------|------------------|
+| Policy Areas | 27 federal-focused options | 23 state-focused options | 21 local-focused options |
+| Philosophy Options | Partisan/ideological | Partisan/ideological | Non-partisan/governance style |
+| Section 2 | Standard | Skippable | Skippable (often non-partisan) |
+| New Fields | - | Session type, other occupation, state-federal issues | Role type, governance structure, boards/commissions |
 
-# Start queue worker (for AI features)
-php artisan queue:work
+#### 6-Section Questionnaire:
+
+##### 1. Policy Priorities
+- **Top Policy Areas**: Ranked list of policy focus areas (level-specific options)
+- **Signature Issues**: What the official wants to be known for
+- **Emerging Interests**: New areas of developing focus
+
+##### 2. Political Positioning (Skippable)
+- **Governing Philosophy**: Level-specific options
+  - Federal/State: Progressive, bipartisan, conservative, pragmatic, etc.
+  - Local: Pro-growth, managed growth, fiscally conservative, collaborative, etc.
+- **Philosophy Description**: In their own words
+- **"Red Line" Issues**: Non-negotiable positions
+- **Bipartisan/Coalition Openings**: Areas open to collaboration
+
+##### 3. District/Community Focus
+- **Key Groups**: Important constituency/community groups
+- **Economic Priorities**: Key industries, job sectors, development focuses
+- **Top Concerns**: Issues frequently raised by constituents
+
+##### 4. Personal Background
+- **Professional Background**: Career experience shaping perspectives
+- **Other Occupation**: (State only) Primary job outside legislature
+- **Formative Experiences**: Life events that shaped views
+- **Personal Connections**: Personal ties to policy issues
+
+##### 5. Communication Style
+- **Preferred Tone**: Formal, conversational, passionate, measured, etc.
+- **Key Phrases**: Language the official likes to use
+- **Topics to Emphasize**: Subjects they love to discuss
+- **Topics to Avoid**: Sensitive areas requiring care
+
+##### 6. Goals & AI Settings
+- **Session Type**: (State only) Full-time, part-time, biennial
+- **State-Federal Issues**: (State only) Federal coordination areas
+- **Role Type**: (Local only) Council ward, at-large, mayor, etc.
+- **Governance Structure**: (Local only) Council-manager, strong mayor, etc.
+- **Boards & Commissions**: (Local only) Committees served on
+- **Term Goals**: Priorities for the current term
+- **Long-Term Vision**: Career and impact aspirations
+- **Legacy Items**: What they want to be remembered for
+- **AI Context**: Custom notes for AI prompt personalization
+- **Toggle**: Enable/disable use in AI prompts
+
+#### How It's Used:
+```php
+// In AI services, get personalized context:
+$profile = MemberProfile::current();
+$context = $profile->getAiContextSummary();
+
+// Returns formatted context like:
+// "Top policy priorities: Veterans Affairs, Defense, Immigration
+//  Governing approach: bipartisan
+//  Signature issues: Veterans mental health, Port infrastructure
+//  Non-negotiable positions: No cuts to veterans benefits
+//  Preferred communication tone: conversational"
 ```
 
 ---
 
-## 📋 Recent Updates (December 2025)
+### ⚙️ Setup Wizard
 
-### Meetings
-- ✅ Four meeting view modes (Sections, List, Cards, Kanban)
-- ✅ AI Meeting Prep with Claude integration
-- ✅ Separate Prep Notes vs Meeting Notes fields
-- ✅ Video conference link detection (Zoom, Meet, Teams)
-- ✅ User timezone support from profile
-- ✅ Back button navigation
-- ✅ Refined UI with better toolbar spacing
+Guided onboarding for configuring the office. Supports multiple government levels:
 
-### Funders & Grants
-- ✅ Organization autocomplete for funders
-- ✅ Editable grant details after creation
-- ✅ Loading states for AI extraction
+**Route**: `/setup`
 
-### Knowledge Hub
-- ✅ Complete redesign with widget-based dashboard
-- ✅ AI-powered semantic search
-- ✅ Quick action queries
+#### Government Levels:
+- **Federal**: U.S. Congress (House & Senate)
+  - Automatic member lookup via Congress.gov API
+  - Import biography and legislative record
+  - District geography auto-detection
 
-### Media & Press ✨ NEW
-- ✅ Full module implementation with Coverage, Pitches, Inquiries tabs
-- ✅ Press clips tracking with sentiment and staff mentions
-- ✅ Pitch pipeline with Kanban view
-- ✅ Media inquiry management with urgency and deadlines
-- ✅ Press contacts directory from People
-- ✅ Dashboard with coverage stats and needs attention alerts
+- **State**: State Legislatures
+  - Manual entry with legislative activity URL option
+  - Supports scraping state legislature sponsor pages
+  - Example: [Tennessee General Assembly](https://wapp.capitol.tn.gov/apps/sponsorlist/)
 
-### Reliability & Admin
-- ✅ Admin Metrics tab (AI health, queues, calendar freshness, document ingestion)
-- ✅ Admin Permissions tab to manage access levels and admin flags
-- ✅ AI/cache resilience (cached chat/status answers on failure; health banners)
-- ✅ Safer link ingestion (domain allow/deny, private host blocking, size caps)
+- **Local**: City/County Officials
+  - Manual entry with optional council portal URL
+  - Social media activity tracking
 
----
+#### Setup Steps:
+1. **Basic Info**: Name, title, party, state, district, government level
+2. **Verify Information**: Review and add office details
+3. **News Sources**: Select relevant media outlets to monitor
+4. **Import/Configure**: 
+   - Federal: Import from Congress.gov
+   - State/Local: Configure legislative activity URL
+5. **Review & Launch**: Summary and next steps
 
-## 📋 Roadmap
-
-- [ ] AI summary generation for meeting notes
-- [ ] Email notifications for deadlines
-- [ ] Commitment tracking system
-- [ ] Enhanced reporting templates
-- [ ] Mobile-responsive enhancements
-- [ ] Multi-organization support
-- [ ] API for external integrations
-- [ ] Embedding-based search for higher-recall RAG
-- [ ] Alerting hooks (Slack/Email) on AI/queue/calendar faults
+#### Social Media Support:
+- Twitter/X
+- Facebook
+- Instagram
+- YouTube
+- LinkedIn
+- Bluesky
+- TikTok
 
 ---
 
+### 📊 Dashboard System
 
+Two dashboard options based on staff role:
+
+1. **Personal Dashboard** (`/dashboard/personal`)
+   - Focus on individual assignments and tasks
+   - My upcoming meetings
+   - My action items
+   - Issues I'm assigned to
+
+2. **Office Overview** (`/dashboard/overview`)
+   - Bird's-eye view of entire office operations
+   - All active issues
+   - Office-wide meeting calendar
+   - Team workload distribution
+   - Key metrics
+
+*Dashboard routing is automatic based on staff title/role, with manual toggle available.*
 
 ---
 
-*Built with ❤️ for nonprofit teams who need powerful tools without enterprise complexity.*
+### 🛡️ Management & Admin
+
+#### Management Section (for CoS/LD):
+
+**Team Overview** (`/management/team`)
+
+A dashboard for Chiefs of Staff and Legislative Directors to monitor team activity:
+
+- **Staff Workload Grid**: See each staffer's current issue assignments at a glance
+- **Issue Assignment Matrix**: Which issues are assigned to whom, with status indicators
+- **Activity Summary**: Recent activity by team member (meetings added, issues updated)
+- **Assign Issues**: Quickly assign or reassign issues to team members
+- **Workload Balancing**: Identify overloaded or underutilized staff
+- **Coverage Gaps**: See issues without clear ownership
+
+*Access requires Management role (CoS, LD, Deputy Chief, Office Manager).*
+
+#### Admin Section:
+- **How AI Works**: Transparency page explaining AI features
+  - Model information and data handling
+  - Prompt viewing and customization
+  - Enable/disable AI features
+- **Billing & Plan**: Beta pricing info, seat management
+- **Integrations**: Third-party service connections
+- **Office Settings**: Configure office preferences
+- **Setup Wizard**: Re-run initial setup
+- **Member Priorities**: Update official's interests and goals
+
+---
+
+## Tech Stack
+
+- **Framework**: Laravel 12
+- **Frontend**: Livewire 3, Alpine.js
+- **Styling**: Tailwind CSS
+- **Database**: SQLite (development), MySQL/PostgreSQL (production)
+- **AI**: Anthropic Claude / OpenAI GPT for chat, analysis, and insights
+- **APIs**: Congress.gov API for federal member data
+
+## Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd legidash
+
+# Install dependencies
+composer install
+npm install
+
+# Copy environment file
+cp .env.example .env
+
+# Generate application key
+php artisan key:generate
+
+# Run migrations
+php artisan migrate
+
+# Build assets
+npm run build
+
+# Start development server
+php artisan serve
+```
+
+## Configuration
+
+### Environment Variables
+
+Key environment variables to configure:
+
+```env
+# Application
+APP_NAME="LegiDash"
+APP_URL=http://localhost:8000
+
+# Database
+DB_CONNECTION=sqlite
+DB_DATABASE=/path/to/database.sqlite
+
+# AI Features
+AI_ENABLED=true
+ANTHROPIC_API_KEY=your-anthropic-api-key
+OPENAI_API_KEY=your-openai-api-key  # Optional
+
+# Congress.gov API (for federal offices)
+CONGRESS_API_KEY=your-congress-api-key
+```
+
+### Office Configuration
+
+The `config/office.php` file is auto-generated by the Setup Wizard and contains:
+
+- **Member Information**: Name, party, state, district, bio, social media
+- **Government Level**: Federal, state, or local
+- **Congressional Session**: Current Congress number and dates (federal only)
+- **Committee Assignments**: Committee and subcommittee roles
+- **District Information**: Cities, counties, population
+- **Office Locations**: DC/Capitol and district office addresses with timezones
+- **Staff Roles**: Role categories for dashboard routing
+- **Legislative Activity**: URL for state/local bill tracking
+- **News Sources**: Media outlets to monitor
+- **Feature Flags**: Enable/disable specific features
+
+## Database Schema
+
+### Core Tables
+
+| Table | Description |
+|-------|-------------|
+| `users` | Staff members with roles, titles, office locations |
+| `issues` | Legislative issues and projects |
+| `topics` | Issue/topic tags for meetings |
+| `meetings` | Meeting records with types and preparation status |
+| `people` | Stakeholders, advocates, and external contacts |
+| `organizations` | Companies, agencies, advocacy groups |
+| `actions` | Action items and follow-ups |
+| `press_clips` | Media coverage tracking |
+
+### Member Hub Tables
+
+| Table | Description |
+|-------|-------------|
+| `member_profiles` | **Member priorities, interests, and AI settings** |
+| `member_locations` | Track official's current location and activity |
+| `member_statements` | Press releases, floor speeches, op-eds |
+| `position_evolutions` | Policy position changes over time |
+| `constituent_feedback` | Aggregated policy feedback themes (not casework) |
+| `ai_insights` | AI-generated suggestions and alerts |
+| `issue_relationships` | How policy areas connect |
+
+### System Tables
+
+| Table | Description |
+|-------|-------------|
+| `beta_requests` | Beta access request submissions |
+
+## Project Structure
+
+```
+app/
+├── Http/Controllers/     # HTTP controllers
+├── Livewire/
+│   ├── Admin/            # Admin components (AI, Billing, Settings)
+│   ├── Dashboards/       # Dashboard components
+│   ├── Issues/           # Issue management
+│   ├── Management/       # Management components
+│   ├── Meetings/         # Meeting components
+│   ├── Media/            # Press and media
+│   ├── MemberHub/        # Member context dashboard
+│   ├── Organizations/    # Organization CRM
+│   ├── People/           # Contact CRM
+│   ├── PlatformAdmin/    # Platform admin (super admins only)
+│   ├── Setup/            # Setup wizard & Member priorities
+│   └── Team/             # Team management
+├── Models/               # Eloquent models
+├── Services/             # Business logic services
+└── Jobs/                 # Background jobs
+
+resources/
+├── views/
+│   ├── layouts/          # App layouts
+│   ├── livewire/         # Livewire component views
+│   │   ├── setup/        # Setup wizard & priorities views
+│   │   ├── admin/        # Admin section views
+│   │   └── platform-admin/ # Platform admin views
+│   └── components/       # Blade components
+├── css/
+└── js/
+
+config/
+└── office.php            # Office configuration (auto-generated)
+```
+
+## Routes
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page with beta request |
+| `/dashboard` | Auto-routes to appropriate dashboard |
+| `/dashboard/personal` | Personal staff dashboard |
+| `/dashboard/overview` | Office-wide overview |
+| `/member` | Member Hub dashboard |
+| `/setup` | Setup wizard |
+| `/setup/priorities` | **Member Priorities questionnaire** |
+| `/issues` | Issue management |
+| `/meetings` | Meeting list and management |
+| `/people` | Contact CRM |
+| `/organizations` | Organization CRM |
+| `/media` | Press and media tracking |
+| `/knowledge` | Knowledge Hub (AI search) |
+| `/knowledge-base` | Document library |
+| `/team` | Team directory and hub |
+| `/management/team` | **Team Overview (CoS/LD)** |
+| `/admin/ai` | How AI Works (transparency) |
+| `/admin/billing` | Billing & Plan |
+| `/admin/settings` | Office Settings |
+| `/platform-admin` | **Platform Admin (super admins only)** |
+
+## Development History
+
+### Phase 1: Core Renaming & Cleanup
+- Renamed "Projects" module to "Issues" for congressional context
+- Renamed old "Issues" (topic tags) to "Topics" to resolve naming conflict
+- Removed "Funders" module (not applicable to congressional offices)
+- Updated all routes, views, and navigation
+- Added legislative fields to Issues (bill numbers, Congress, chamber)
+
+### Phase 2: Member Hub Dashboard
+- Created comprehensive Member Hub dashboard
+- Added member location tracking with timezones
+- Implemented policy position evolution tracking
+- Added constituent feedback aggregation
+- Created AI insights system
+- Added member statements tracking
+- Implemented dashboard routing based on staff roles
+- Created office configuration system
+
+### Phase 3: Multi-Level Support & Admin
+- **Setup Wizard**: Support for federal, state, and local offices
+- **Member Priorities**: 6-section questionnaire for capturing interests, goals, and AI settings
+- **Beta System**: Request access form on homepage
+- **Admin Restructure**: Split into Management (CoS/LD) and Admin sections
+- **AI Transparency**: "How AI Works" page with prompt customization
+- **Billing**: Beta pricing display
+- **State/Local Support**: Legislative activity URL scraping
+- **Social Media**: Added LinkedIn, Bluesky, TikTok support
+
+### Phase 4: Platform Admin & Renaming
+- Renamed from "WRK" to "LegiDash"
+- Removed organization-specific references
+- Added Platform Admin for super admins
+- Generic branding for any legislative office
+
+## Contributing
+
+This is an internal tool for elected offices. For feature requests or bug reports, please contact the development team.
+
+## License
+
+Proprietary - All rights reserved.
+
+---
+
+**LegiDash** — Built for public service. 🏛️

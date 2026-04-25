@@ -7,7 +7,7 @@
         'person' => ['icon' => 'user', 'color' => 'text-green-500', 'bg' => 'bg-green-50 dark:bg-green-900/30', 'label' => 'Person'],
         'organization' => ['icon' => 'building-office', 'color' => 'text-amber-500', 'bg' => 'bg-amber-50 dark:bg-amber-900/30', 'label' => 'Organization'],
         'commitment' => ['icon' => 'check-circle', 'color' => 'text-rose-500', 'bg' => 'bg-rose-50 dark:bg-rose-900/30', 'label' => 'Commitment'],
-        'project' => ['icon' => 'folder', 'color' => 'text-teal-500', 'bg' => 'bg-teal-50 dark:bg-teal-900/30', 'label' => 'Project'],
+        'project' => ['icon' => 'folder', 'color' => 'text-teal-500', 'bg' => 'bg-teal-50 dark:bg-teal-900/30', 'label' => 'Issue'],
         default => ['icon' => 'document', 'color' => 'text-gray-500', 'bg' => 'bg-gray-50 dark:bg-gray-700', 'label' => 'Item'],
     };
 
@@ -54,7 +54,10 @@
                 @if(isset($result['date']) && $result['date'])
                     <span>{{ \Carbon\Carbon::parse($result['date'])->format('M j, Y') }}</span>
                 @endif
-                @if(isset($result['project']) && $result['project'])
+                @if(isset($result['issue']) && $result['issue'])
+                    <span class="text-gray-300 dark:text-gray-600">•</span>
+                    <span>{{ $result['issue'] }}</span>
+                @elseif(isset($result['project']) && $result['project'])
                     <span class="text-gray-300 dark:text-gray-600">•</span>
                     <span>{{ $result['project'] }}</span>
                 @endif

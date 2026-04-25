@@ -1,17 +1,17 @@
 <?php
 
 use App\Jobs\RunStyleCheck;
-use App\Models\Project;
-use App\Models\ProjectDocument;
+use App\Models\Issue;
+use App\Models\IssueDocument;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 it('stores style check suggestions and updates document flags', function () {
     Storage::fake('local');
 
-    $project = Project::factory()->create();
-    $doc = ProjectDocument::factory()->create([
-        'project_id' => $project->id,
+    $issue = Issue::factory()->create();
+    $doc = IssueDocument::factory()->create([
+        'issue_id' => $issue->id,
         'file_path' => 'README.md',
         'file_type' => 'md',
         'title' => 'README.md',
@@ -37,7 +37,7 @@ it('stores style check suggestions and updates document flags', function () {
     ]);
 
     $content = "# Title\n\nBad phrase in document.";
-    $job = new RunStyleCheck($project->id, $doc->id, $doc->file_path, $content);
+    $job = new RunStyleCheck($issue->id, $doc->id, $doc->file_path, $content);
     $job->handle();
 
     $doc->refresh();

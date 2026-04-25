@@ -371,7 +371,7 @@ class MeetingDetail extends Component
     },
     \"suggested_topics\": [\"Topic 1\", \"Topic 2\"],
     \"relevant_history\": \"Summary of past interactions if any\",
-    \"relevant_projects\": [\"Project names that may be discussed\"],
+    \"relevant_issues\": [\"Issue names that may be discussed\"],
     \"key_questions\": [\"Questions to ask\"],
     \"preparation_notes\": \"Any specific preparation recommendations\",
     \"potential_asks\": [\"Things they might ask for\", \"Things we might ask for\"]
@@ -450,18 +450,18 @@ class MeetingDetail extends Component
             $context[] = "Topics: " . $issues;
         }
 
-        // Relevant Projects
-        $projects = \App\Models\Project::whereHas('organizations', function ($q) {
+        // Relevant Issues
+        $issues = \App\Models\Issue::whereHas('organizations', function ($q) {
             $q->whereIn('organizations.id', $this->meeting->organizations->pluck('id'));
         })
             ->orWhere('status', 'active')
             ->limit(5)
             ->get();
 
-        if ($projects->count() > 0) {
-            $context[] = "\nRelevant Projects:";
-            foreach ($projects as $proj) {
-                $context[] = "- {$proj->name}" . ($proj->description ? ": " . \Str::limit($proj->description, 100) : '');
+        if ($issues->count() > 0) {
+            $context[] = "\nRelevant Issues:";
+            foreach ($issues as $issue) {
+                $context[] = "- {$issue->name}" . ($issue->description ? ": " . \Str::limit($issue->description, 100) : '');
             }
         }
 

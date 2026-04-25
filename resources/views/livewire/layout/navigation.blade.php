@@ -23,32 +23,35 @@ new class extends Component {
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center">
-                        <img src="{{ asset('images/logo.png') }}" alt="PVOXWRK" class="h-8 w-auto">
+                        <img src="{{ asset('images/logo.png') }}" alt="LegiDash" class="h-8 w-auto">
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+                <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard*')" wire:navigate>
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('meetings.index')" :active="request()->routeIs('meetings.*')"
-                        wire:navigate>
+                    <x-nav-link :href="route('issues.index')" :active="request()->routeIs('issues.*')" wire:navigate>
+                        {{ __('Issues') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('meetings.index')" :active="request()->routeIs('meetings.*')" wire:navigate>
                         {{ __('Meetings') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')"
-                        wire:navigate>
-                        {{ __('Projects') }}
+                    <x-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.*')" wire:navigate>
+                        {{ __('Orgs') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.*')"
-                        wire:navigate>
-                        {{ __('Organizations') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('people.index')" :active="request()->routeIs('people.*')" wire:navigate>
-                        {{ __('People') }}
+                    <x-nav-link :href="route('contacts.index')" :active="request()->routeIs('contacts.*') || request()->routeIs('people.*')" wire:navigate>
+                        {{ __('Contacts') }}
                     </x-nav-link>
                     <x-nav-link :href="route('media.index')" :active="request()->routeIs('media.*')" wire:navigate>
                         {{ __('Media') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('member.hub')" :active="request()->routeIs('member.*')" wire:navigate>
+                        {{ __('Member') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('knowledge.hub')" :active="request()->routeIs('knowledge.*')" wire:navigate>
+                        {{ __('Knowledge') }}
                     </x-nav-link>
                     <x-nav-link :href="route('team.hub')" :active="request()->routeIs('team.*')" wire:navigate>
                         {{ __('Team') }}
@@ -81,6 +84,30 @@ new class extends Component {
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
+                        @if(auth()->user()->is_admin)
+                            <div class="border-t border-gray-100 dark:border-gray-600 my-1"></div>
+                            <div class="px-4 py-1 text-xs text-gray-400 uppercase tracking-wider">Office Admin</div>
+                            <x-dropdown-link :href="route('admin.metrics')" wire:navigate>
+                                {{ __('Metrics') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('admin.permissions')" wire:navigate>
+                                {{ __('Office Settings') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('setup.wizard')" wire:navigate>
+                                {{ __('Setup Wizard') }}
+                            </x-dropdown-link>
+                        @endif
+
+                        @if(auth()->user()->is_super_admin)
+                            <div class="border-t border-gray-100 dark:border-gray-600 my-1"></div>
+                            <div class="px-4 py-1 text-xs text-purple-400 uppercase tracking-wider">Platform</div>
+                            <x-dropdown-link :href="route('platform.dashboard')" class="text-purple-600 dark:text-purple-400">
+                                {{ __('Admin Panel') }}
+                            </x-dropdown-link>
+                        @endif
+
+                        <div class="border-t border-gray-100 dark:border-gray-600 my-1"></div>
+
                         <!-- Authentication -->
                         <button wire:click="logout" class="w-full text-start">
                             <x-dropdown-link>
@@ -110,25 +137,32 @@ new class extends Component {
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard*')" wire:navigate>
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('meetings.index')" :active="request()->routeIs('meetings.*')"
-                wire:navigate>
+            <x-responsive-nav-link :href="route('issues.index')" :active="request()->routeIs('issues.*')" wire:navigate>
+                {{ __('Issues') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('meetings.index')" :active="request()->routeIs('meetings.*')" wire:navigate>
                 {{ __('Meetings') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.*')"
-                wire:navigate>
+            <x-responsive-nav-link :href="route('organizations.index')" :active="request()->routeIs('organizations.*')" wire:navigate>
                 {{ __('Organizations') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('people.index')" :active="request()->routeIs('people.*')" wire:navigate>
-                {{ __('People') }}
+            <x-responsive-nav-link :href="route('contacts.index')" :active="request()->routeIs('contacts.*') || request()->routeIs('people.*')" wire:navigate>
+                {{ __('Contacts') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('media.index')" :active="request()->routeIs('media.*')" wire:navigate>
-                {{ __('Media') }}
+                {{ __('Media & Press') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('member.hub')" :active="request()->routeIs('member.*')" wire:navigate>
+                {{ __('Member Hub') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('knowledge.hub')" :active="request()->routeIs('knowledge.*')" wire:navigate>
+                {{ __('Knowledge Hub') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('team.hub')" :active="request()->routeIs('team.*')" wire:navigate>
-                {{ __('Team') }}
+                {{ __('Team Hub') }}
             </x-responsive-nav-link>
         </div>
 
@@ -145,6 +179,30 @@ new class extends Component {
                 <x-responsive-nav-link :href="route('profile')" wire:navigate>
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+
+                @if(auth()->user()->is_admin)
+                    <div class="border-t border-gray-200 dark:border-gray-600 my-2 mx-4"></div>
+                    <div class="px-4 py-1 text-xs text-gray-400 uppercase tracking-wider">Office Admin</div>
+                    <x-responsive-nav-link :href="route('admin.metrics')" wire:navigate>
+                        {{ __('Metrics') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.permissions')" wire:navigate>
+                        {{ __('Office Settings') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('setup.wizard')" wire:navigate>
+                        {{ __('Setup Wizard') }}
+                    </x-responsive-nav-link>
+                @endif
+
+                @if(auth()->user()->is_super_admin)
+                    <div class="border-t border-gray-200 dark:border-gray-600 my-2 mx-4"></div>
+                    <div class="px-4 py-1 text-xs text-purple-400 uppercase tracking-wider">Platform</div>
+                    <x-responsive-nav-link :href="route('platform.dashboard')" class="text-purple-600 dark:text-purple-400">
+                        {{ __('Admin Panel') }}
+                    </x-responsive-nav-link>
+                @endif
+
+                <div class="border-t border-gray-200 dark:border-gray-600 my-2 mx-4"></div>
 
                 <!-- Authentication -->
                 <button wire:click="logout" class="w-full text-start">

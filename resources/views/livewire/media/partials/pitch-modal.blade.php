@@ -79,15 +79,15 @@
                         @enderror
                     </div>
 
-                    {{-- Related Project --}}
+                    {{-- Related Issue --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Related
-                            Project</label>
-                        <select wire:model="pitchForm.project_id"
+                            Issue</label>
+                        <select wire:model="pitchForm.issue_id"
                             class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm">
-                            <option value="">— Select Project —</option>
-                            @foreach($projects as $project)
-                                <option value="{{ $project->id }}">{{ $project->name }}</option>
+                            <option value="">— Select Issue —</option>
+                            @foreach($issues as $issue)
+                                <option value="{{ $issue->id }}">{{ $issue->name }}</option>
                             @endforeach
                         </select>
                     </div>

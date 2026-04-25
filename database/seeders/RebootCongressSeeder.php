@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Project;
-use App\Models\ProjectEvent;
-use App\Models\ProjectPublication;
+use App\Models\Issue;
+use App\Models\IssueEvent;
+use App\Models\IssuePublication;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
@@ -13,13 +13,13 @@ class RebootCongressSeeder extends Seeder
     public function run(): void
     {
         // Create or update the REBOOT CONGRESS 2026 project
-        $project = Project::updateOrCreate(
+        $issue = Issue::updateOrCreate(
             ['name' => 'REBOOT CONGRESS 2026'],
             [
                 'description' => 'Rebuilding Legislative Capacity for the AI Era. A year-long research and engagement initiative culminating in comprehensive recommendations for the 120th Congress (January 2027).',
                 'status' => 'active',
                 'is_initiative' => true,
-                'project_path' => 'REBOOT CONGRESS 2026',
+                'issue_path' => 'REBOOT CONGRESS 2026',
                 'scope' => 'Major Initiative',
                 'lead' => 'POPVOX Foundation',
                 'start_date' => Carbon::create(2026, 1, 1),
@@ -137,9 +137,9 @@ class RebootCongressSeeder extends Seeder
         ];
 
         foreach ($publications as $pubData) {
-            ProjectPublication::updateOrCreate(
+            IssuePublication::updateOrCreate(
                 [
-                    'project_id' => $project->id,
+                    'issue_id' => $issue->id,
                     'title' => $pubData['title'],
                 ],
                 $pubData
@@ -214,9 +214,9 @@ class RebootCongressSeeder extends Seeder
         ];
 
         foreach ($events as $eventData) {
-            ProjectEvent::updateOrCreate(
+            IssueEvent::updateOrCreate(
                 [
-                    'project_id' => $project->id,
+                    'issue_id' => $issue->id,
                     'title' => $eventData['title'],
                 ],
                 $eventData

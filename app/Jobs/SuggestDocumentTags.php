@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\ProjectDocument;
+use App\Models\IssueDocument;
 use App\Support\AI\AnthropicClient;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,7 +31,7 @@ class SuggestDocumentTags implements ShouldQueue
             return;
         }
 
-        $doc = ProjectDocument::find($this->documentId);
+        $doc = IssueDocument::find($this->documentId);
         if (!$doc) {
             return;
         }

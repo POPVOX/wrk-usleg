@@ -18,10 +18,10 @@
                                class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white">
                     </div>
                     <div class="lg:col-span-3">
-                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Project</label>
-                        <select wire:model="projectId" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white">
-                            <option value="">All projects</option>
-                            @foreach($projects as $p)
+                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Issue</label>
+                        <select wire:model="issueId" class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white">
+                            <option value="">All issues</option>
+                            @foreach($issues as $p)
                                 <option value="{{ $p['id'] }}">{{ $p['name'] }}</option>
                             @endforeach
                         </select>
@@ -108,8 +108,8 @@
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300">Missing</span>
                                     @endif
                                 </div>
-                                @if($r['project'])
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $r['project'] }}</div>
+                                @if($r['issue'])
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $r['issue'] }}</div>
                                 @endif
                                 @if($r['snippet'])
                                     <div class="text-sm text-gray-700 dark:text-gray-300 mt-2 prose prose-sm dark:prose-invert max-w-none">
@@ -124,7 +124,7 @@
                                         Open
                                     </a>
                                 @else
-                                    <a href="{{ route('projects.workspace', ['project' => $r['project_id']]) . '?doc=' . $r['id'] }}"
+                                    <a href="{{ route('issues.show', ['issue' => $r['issue_id']]) . '?activeTab=documents' }}"
                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-xs font-medium">
                                         View
                                     </a>

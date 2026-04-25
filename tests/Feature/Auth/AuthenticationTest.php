@@ -49,11 +49,14 @@ test('navigation menu can be rendered', function () {
     $this->actingAs($user);
 
     $response = $this->get('/dashboard');
+    $response->assertRedirect(route('dashboard.personal', absolute: false));
 
-    $response
+    $dashboard = $this->followingRedirects()->get('/dashboard');
+
+    $dashboard
         ->assertOk()
         ->assertSee('Dashboard')
-        ->assertSee('Projects');
+        ->assertSee('Issues');
 });
 
 test('users can logout', function () {

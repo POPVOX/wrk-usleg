@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\ProjectDocument;
+use App\Models\IssueDocument;
 use App\Services\DocumentSafety;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,7 +28,7 @@ class IndexDocumentContent implements ShouldQueue
 
     public function handle(): void
     {
-        $doc = ProjectDocument::find($this->documentId);
+        $doc = IssueDocument::find($this->documentId);
         if (!$doc) {
             return;
         }
@@ -88,9 +88,9 @@ class IndexDocumentContent implements ShouldQueue
             // Update FTS5 index
             try {
                 DB::delete('DELETE FROM kb_index WHERE doc_id = ?', [$doc->id]);
-                DB::insert('INSERT INTO kb_index (doc_id, project_id, title, body) VALUES (?, ?, ?, ?)', [
+                DB::insert('INSERT INTO kb_index (doc_id, issue_id, title, body) VALUES (?, ?, ?, ?)', [
                     $doc->id,
-                    $doc->project_id,
+                    $doc->issue_id,
                     (string) ($doc->title ?? ''),
                     (string) ($content . $tagsBlob),
                 ]);

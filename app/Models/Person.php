@@ -98,11 +98,11 @@ class Person extends Model
     }
 
     /**
-     * Get the projects this person is linked to.
+     * Get the issues this person is linked to.
      */
-    public function projects(): BelongsToMany
+    public function issues(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class, 'project_person')
+        return $this->belongsToMany(Issue::class, 'issue_person')
             ->withPivot(['role', 'notes'])
             ->withTimestamps();
     }

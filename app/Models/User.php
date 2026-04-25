@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -24,6 +25,8 @@ class User extends Authenticatable
         'email',
         'password',
         'is_admin',
+        'is_super_admin',
+        'ai_credits_bonus',
         'title',
         'role',
         'access_level',
@@ -70,6 +73,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'is_super_admin' => 'boolean',
             'start_date' => 'date',
             'end_date' => 'date',
             'onboarding_checklist' => 'array',
@@ -81,11 +85,20 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user is an administrator.
+     * Check if the user is an administrator (office-level admin, like Chief of Staff).
      */
     public function isAdmin(): bool
     {
         return $this->is_admin === true || $this->access_level === 'admin';
+    }
+
+    /**
+     * Check if the user is a platform super admin.
+     * Super admins have access to the platform-wide admin panel.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin === true;
     }
 
     /**
@@ -140,5 +153,31 @@ class User extends Authenticatable
     public function assignedActions(): HasMany
     {
         return $this->hasMany(Action::class, 'assigned_to');
+    }
+
+    /**
+     * Get issues assigned to this user.
+     */
+    public function assignedIssues(): BelongsToMany
+    {
+        return $this->belongsToMany(Issue::class, 'issue_staff', 'user_id', 'issue_id');
+    }
+
+    /**
+     * Get AI usage logs for this user.
+     */
+    public function aiUsage(): HasMany
+    {
+        return $this->hasMany(AiUsage::class);
+    }
+
+    /**
+     * Get AI usage count for current month.
+     */
+    public function getAiUsageThisMonthAttribute(): int
+    {
+        return $this->aiUsage()
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
     }
 }

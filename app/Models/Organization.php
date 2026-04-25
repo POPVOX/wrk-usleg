@@ -84,28 +84,16 @@ class Organization extends Model
     }
 
     /**
-     * Get the projects this organization is linked to.
+     * Get the issues this organization is linked to.
      */
-    public function projects(): BelongsToMany
+    public function issues(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class, 'project_organization')
+        return $this->belongsToMany(Issue::class, 'issue_organization')
             ->withPivot(['role', 'notes'])
             ->withTimestamps();
     }
 
-    /**
-     * Get the grants from this funder organization.
-     */
-    public function grants(): HasMany
-    {
-        return $this->hasMany(Grant::class);
-    }
-
     // Scopes
-    public function scopeFunders($query)
-    {
-        return $query->where('is_funder', true);
-    }
 
     public function scopeCongressional($query)
     {

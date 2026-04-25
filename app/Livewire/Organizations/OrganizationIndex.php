@@ -3,6 +3,7 @@
 namespace App\Livewire\Organizations;
 
 use App\Models\Organization;
+use App\Support\AI\OpenAiClient;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -173,27 +174,23 @@ class OrganizationIndex extends Component
         $this->extractedOrgs = [];
 
         try {
-            $response = \Illuminate\Support\Facades\Http::withHeaders([
-                'Authorization' => 'Bearer ' . config('services.openai.key'),
-                'Content-Type' => 'application/json',
-            ])->post('https://api.openai.com/v1/chat/completions', [
-                        'model' => 'gpt-4o-mini',
-                        'messages' => [
-                            [
-                                'role' => 'system',
-                                'content' => 'You are an expert at extracting organization names from unstructured text. Extract all distinct organization, company, foundation, nonprofit, government agency, and institution names. Return ONLY a JSON array of strings with the organization names. Do not include any explanation, just the JSON array. Remove duplicates. If you cannot find any organizations, return an empty array [].'
-                            ],
-                            [
-                                'role' => 'user',
-                                'content' => "Extract all organization names from this text:\n\n" . $this->bulkText
-                            ]
-                        ],
-                        'temperature' => 0.3,
-                        'max_tokens' => 2000,
-                    ]);
+            $response = OpenAiClient::chat([
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are an expert at extracting organization names from unstructured text. Extract all distinct organization, company, foundation, nonprofit, government agency, and institution names. Return ONLY a JSON array of strings with the organization names. Do not include any explanation, just the JSON array. Remove duplicates. If you cannot find any organizations, return an empty array [].',
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "Extract all organization names from this text:\n\n" . $this->bulkText,
+                    ],
+                ],
+                'temperature' => 0.3,
+                'max_tokens' => 2000,
+            ]);
 
-            if ($response->successful()) {
-                $content = $response->json()['choices'][0]['message']['content'] ?? '[]';
+            if (empty($response['error'])) {
+                $content = $response['choices'][0]['message']['content'] ?? '[]';
                 // Clean up the response - remove markdown code blocks if present
                 $content = preg_replace('/^```json\s*/', '', $content);
                 $content = preg_replace('/\s*```$/', '', $content);

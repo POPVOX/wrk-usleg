@@ -31,10 +31,10 @@
                         @error('meeting_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                     </div>
 
-                    <!-- POPVOX Team Members -->
+                    <!-- Staff Team Members -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            POPVOX Team Members
+                            Staff Team Members
                         </label>
                         <div class="flex gap-2 mb-2">
                             <select wire:change="addTeamMember($event.target.value); $event.target.value = ''"

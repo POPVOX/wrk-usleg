@@ -44,7 +44,7 @@
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </div>
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome to WRK! 👋</h2>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome to LegiDash! 👋</h2>
                     <p class="text-gray-500 dark:text-gray-400 mt-2">Let's set up your profile to get started.</p>
                 </div>
 
@@ -434,7 +434,7 @@
                 @if($importMessage)
                     <p class="text-gray-600 dark:text-gray-400 mb-6">{{ $importMessage }}</p>
                 @else
-                    <p class="text-gray-500 dark:text-gray-400 mb-6">Your profile is ready. Welcome to WRK!</p>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6">Your profile is ready. Welcome to LegiDash!</p>
                 @endif
 
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-8 text-left">
@@ -443,7 +443,7 @@
                         <li class="flex items-center gap-3">
                             <span
                                 class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-medium">1</span>
-                            Create or join a project to start tracking your work
+                            Create or join an issue to start tracking your work
                         </li>
                         <li class="flex items-center gap-3">
                             <span

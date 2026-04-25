@@ -120,13 +120,13 @@
                     @endif
                 </div>
 
-                {{-- Active Projects --}}
+                {{-- Active Issues --}}
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">My Projects</p>
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">My Issues</p>
                             <p class="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                                {{ $stats['active_projects'] }}</p>
+                                {{ $stats['active_issues'] }}</p>
                         </div>
                         <div
                             class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
@@ -137,7 +137,7 @@
                         </div>
                     </div>
                     <p class="text-xs mt-2 text-gray-500 dark:text-gray-400">
-                        {{ $stats['project_actions_pending'] }} tasks pending
+                        {{ $stats['issue_actions_pending'] ?? 0 }} tasks pending
                     </p>
                 </div>
 
@@ -363,11 +363,11 @@
             </div>
 
             {{-- ============================================== --}}
-            {{-- SECOND ROW - Projects & Needs Attention --}}
+            {{-- SECOND ROW - Issues & Needs Attention --}}
             {{-- ============================================== --}}
             <div class="grid lg:grid-cols-2 gap-6 mb-6">
 
-                {{-- My Projects --}}
+                {{-- My Issues --}}
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -375,26 +375,26 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                             </svg>
-                            My Projects
+                            My Issues
                         </h2>
-                        <a href="{{ route('projects.index') }}" wire:navigate
+                        <a href="{{ route('issues.index') }}" wire:navigate
                             class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800">
                             View all →
                         </a>
                     </div>
 
-                    @if($myProjects->isNotEmpty())
+                    @if($myIssues->isNotEmpty())
                         <div class="space-y-4">
-                            @foreach($myProjects->take(4) as $project)
-                                <a href="{{ route('projects.show', $project) }}" wire:navigate
+                            @foreach($myIssues->take(4) as $issue)
+                                <a href="{{ route('issues.show', $issue) }}" wire:navigate
                                     class="block p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition group">
                                     <div class="flex items-center justify-between mb-2">
                                         <p
                                             class="font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 truncate">
-                                            {{ $project->name }}
+                                            {{ $issue->name }}
                                         </p>
                                         <span class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $project->pending_milestones_count }} milestones
+                                            {{ $issue->pending_milestones_count }} milestones
                                         </span>
                                     </div>
 
@@ -402,10 +402,10 @@
                                     <div class="flex items-center gap-3">
                                         <div class="flex-1 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                                             <div class="h-full bg-indigo-500 rounded-full transition-all"
-                                                style="width: {{ $project->progress_percent }}%"></div>
+                                                style="width: {{ $issue->progress_percent }}%"></div>
                                         </div>
                                         <span class="text-xs text-gray-500 dark:text-gray-400 w-10 text-right">
-                                            {{ $project->progress_percent }}%
+                                            {{ $issue->progress_percent }}%
                                         </span>
                                     </div>
                                 </a>
@@ -418,7 +418,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                             </svg>
-                            <p class="text-gray-500 dark:text-gray-400">No projects assigned</p>
+                            <p class="text-gray-500 dark:text-gray-400">No issues assigned</p>
                         </div>
                     @endif
                 </div>
@@ -524,7 +524,7 @@
                             </svg>
                             Funding Alerts
                         </h2>
-                        <a href="{{ route('grants.index') }}" wire:navigate
+                        <a href="{{ route('issues.index') }}" wire:navigate
                             class="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800">
                             View all →
                         </a>

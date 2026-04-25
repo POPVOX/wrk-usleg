@@ -5,10 +5,10 @@ namespace App\Livewire\Media;
 use App\Models\PressClip;
 use App\Models\Pitch;
 use App\Models\Inquiry;
-use App\Models\Issue;
+use App\Models\Topic;
 use App\Models\Organization;
 use App\Models\Person;
-use App\Models\Project;
+use App\Models\Issue;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -280,7 +280,7 @@ class MediaIndex extends Component
 
     public function getClipsProperty()
     {
-        $query = PressClip::with(['journalist', 'outlet', 'issues', 'projects', 'staffMentioned']);
+        $query = PressClip::with(['journalist', 'outlet', 'topics', 'issues', 'staffMentioned']);
 
         if ($this->clipStatus === 'pending_review') {
             $query->pendingReview();
@@ -316,7 +316,7 @@ class MediaIndex extends Component
 
     public function getPitchesProperty()
     {
-        $query = Pitch::with(['journalist', 'outlet', 'project', 'pitchedBy', 'issues']);
+        $query = Pitch::with(['journalist', 'outlet', 'issue', 'pitchedBy', 'topics']);
 
         if ($this->search && $this->activeTab === 'pitches') {
             $query->where(function ($q) {
@@ -365,7 +365,7 @@ class MediaIndex extends Component
 
     public function getInquiriesProperty()
     {
-        $query = Inquiry::with(['journalist', 'outlet', 'handledBy', 'issues', 'resultingClip']);
+        $query = Inquiry::with(['journalist', 'outlet', 'handledBy', 'topics', 'resultingClip']);
 
         if ($this->search && $this->activeTab === 'inquiries') {
             $query->where(function ($q) {
@@ -455,14 +455,14 @@ class MediaIndex extends Component
             ->get();
     }
 
+    public function getTopicsProperty()
+    {
+        return Topic::orderBy('name')->get();
+    }
+
     public function getIssuesProperty()
     {
         return Issue::orderBy('name')->get();
-    }
-
-    public function getProjectsProperty()
-    {
-        return Project::orderBy('name')->get();
     }
 
     public function getTeamMembersProperty()
@@ -492,8 +492,8 @@ class MediaIndex extends Component
                 'notes' => $clip->notes,
                 'image_url' => $clip->image_url ?? '',
                 'raw_text' => '',
+                'topic_ids' => $clip->topics->pluck('id')->toArray(),
                 'issue_ids' => $clip->issues->pluck('id')->toArray(),
-                'project_ids' => $clip->projects->pluck('id')->toArray(),
                 'staff_ids' => $clip->staffMentioned->pluck('id')->toArray(),
             ];
         } else {
@@ -562,9 +562,9 @@ Return ONLY valid JSON with these fields:
   "journalist_name": "author/reporter name if found",
   "published_date": "YYYY-MM-DD format if found, otherwise null",
   "summary": "brief 1-2 sentence summary of article",
-  "sentiment": "positive, neutral, negative, or mixed regarding POPVOX Foundation",
+  "sentiment": "positive, neutral, negative, or mixed regarding the congressional office",
   "staff_mentioned": ["array of team member names that appear in the article"],
-  "quotes": "any direct quotes from POPVOX staff if found"
+  "quotes": "any direct quotes from staff if found"
 }
 PROMPT;
 
@@ -709,9 +709,9 @@ Return ONLY valid JSON with these fields:
   "outlet_name": "news outlet or publication name if identifiable",
   "journalist_name": "author/reporter name if found",
   "summary": "brief 1-2 sentence summary of article",
-  "sentiment": "positive, neutral, negative, or mixed regarding POPVOX Foundation",
+  "sentiment": "positive, neutral, negative, or mixed regarding the congressional office",
   "staff_mentioned": ["array of team member names that appear in the article"],
-  "quotes": "any direct quotes from POPVOX staff, separated by semicolons if multiple"
+  "quotes": "any direct quotes from staff, separated by semicolons if multiple"
 }
 PROMPT;
 
@@ -840,8 +840,8 @@ PROMPT;
             $clip = PressClip::create($data);
         }
 
+        $clip->topics()->sync($this->clipForm['topic_ids'] ?? []);
         $clip->issues()->sync($this->clipForm['issue_ids'] ?? []);
-        $clip->projects()->sync($this->clipForm['project_ids'] ?? []);
         $clip->staffMentioned()->sync($this->clipForm['staff_ids'] ?? []);
 
         $this->showClipModal = false;
@@ -875,8 +875,8 @@ PROMPT;
             'quotes' => '',
             'notes' => '',
             'image_url' => '',
+            'topic_ids' => [],
             'issue_ids' => [],
-            'project_ids' => [],
             'staff_ids' => [],
             'raw_text' => '',
         ];
@@ -898,8 +898,8 @@ PROMPT;
                 'journalist_email' => $pitch->journalist_email,
                 'outlet_id' => $pitch->outlet_id,
                 'outlet_name' => $pitch->outlet_name,
-                'project_id' => $pitch->project_id,
-                'issue_ids' => $pitch->issues->pluck('id')->toArray(),
+                'issue_id' => $pitch->issue_id,
+                'topic_ids' => $pitch->topics->pluck('id')->toArray(),
                 'notes' => $pitch->notes,
             ];
         } else {
@@ -936,7 +936,7 @@ PROMPT;
             'journalist_email' => $this->pitchForm['journalist_email'],
             'outlet_id' => $this->pitchForm['outlet_id'] ?: null,
             'outlet_name' => $this->pitchForm['outlet_name'],
-            'project_id' => $this->pitchForm['project_id'] ?: null,
+            'issue_id' => $this->pitchForm['issue_id'] ?: null,
             'notes' => $this->pitchForm['notes'],
             'pitched_by' => auth()->id(),
         ];
@@ -955,7 +955,7 @@ PROMPT;
             $pitch = Pitch::create($data);
         }
 
-        $pitch->issues()->sync($this->pitchForm['issue_ids'] ?? []);
+        $pitch->topics()->sync($this->pitchForm['topic_ids'] ?? []);
 
         $this->showPitchModal = false;
         $this->dispatch('notify', type: 'success', message: 'Pitch saved!');
@@ -984,8 +984,8 @@ PROMPT;
             'journalist_email' => '',
             'outlet_id' => null,
             'outlet_name' => '',
-            'project_id' => null,
-            'issue_ids' => [],
+            'issue_id' => null,
+            'topic_ids' => [],
             'notes' => '',
         ];
     }
@@ -1009,9 +1009,9 @@ PROMPT;
                 'journalist_email' => $inquiry->journalist_email,
                 'outlet_id' => $inquiry->outlet_id,
                 'outlet_name' => $inquiry->outlet_name,
-                'project_id' => $inquiry->project_id,
+                'issue_id' => $inquiry->issue_id,
                 'handled_by' => $inquiry->handled_by,
-                'issue_ids' => $inquiry->issues->pluck('id')->toArray(),
+                'topic_ids' => $inquiry->topics->pluck('id')->toArray(),
                 'response_notes' => $inquiry->response_notes,
             ];
         } else {
@@ -1052,7 +1052,7 @@ PROMPT;
             'journalist_email' => $this->inquiryForm['journalist_email'],
             'outlet_id' => $this->inquiryForm['outlet_id'] ?: null,
             'outlet_name' => $this->inquiryForm['outlet_name'],
-            'project_id' => $this->inquiryForm['project_id'] ?: null,
+            'issue_id' => $this->inquiryForm['issue_id'] ?: null,
             'handled_by' => $this->inquiryForm['handled_by'] ?: null,
             'response_notes' => $this->inquiryForm['response_notes'],
         ];
@@ -1065,7 +1065,7 @@ PROMPT;
             $inquiry = Inquiry::create($data);
         }
 
-        $inquiry->issues()->sync($this->inquiryForm['issue_ids'] ?? []);
+        $inquiry->topics()->sync($this->inquiryForm['topic_ids'] ?? []);
 
         $this->showInquiryModal = false;
         $this->dispatch('notify', type: 'success', message: 'Inquiry saved!');
@@ -1208,9 +1208,9 @@ PROMPT;
   \"suggested_angle\": \"Recommended approach/angle for responding\",
   \"talking_points\": [\"Key point 1\", \"Key point 2\", \"Key point 3\"],
   \"potential_concerns\": [\"Any concerns or sensitive topics to be aware of\"],
-  \"related_work\": \"Any POPVOX projects or initiatives that relate to this inquiry\",
+  \"related_work\": \"Any issues or initiatives that relate to this inquiry\",
   \"urgency_assessment\": \"Your assessment of how urgent this actually is and why\",
-  \"recommended_responder\": \"Type of person best suited to respond (e.g., ED, policy expert, comms lead)\"
+  \"recommended_responder\": \"Type of person best suited to respond (e.g., Member, policy expert, comms lead)\"
 }
 
 INQUIRY DETAILS:
@@ -1275,9 +1275,9 @@ Return ONLY the JSON object, no other text.";
             'journalist_email' => '',
             'outlet_id' => null,
             'outlet_name' => '',
-            'project_id' => null,
+            'issue_id' => null,
             'handled_by' => null,
-            'issue_ids' => [],
+            'topic_ids' => [],
             'response_notes' => '',
         ];
     }
@@ -1307,8 +1307,8 @@ Return ONLY the JSON object, no other text.";
             'journalists' => $this->journalists,
             'outlets' => $this->outlets,
             'mediaOutlets' => $this->mediaOutlets,
+            'topics' => $this->topics,
             'issues' => $this->issues,
-            'projects' => $this->projects,
             'teamMembers' => $this->teamMembers,
         ]);
     }

@@ -13,7 +13,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
-#[Title('Welcome to WRK')]
+#[Title('Welcome to LegiDash')]
 class Onboarding extends Component
 {
     use WithFileUploads;

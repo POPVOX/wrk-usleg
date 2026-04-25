@@ -2,12 +2,11 @@
 
 namespace App\Livewire;
 
-use App\Models\Project;
-use App\Models\ProjectDocument;
+use App\Models\Issue;
+use App\Models\IssueDocument;
 use App\Models\KbCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -15,12 +14,12 @@ use Livewire\Component;
 class KnowledgeBase extends Component
 {
     public string $q = '';
-    public ?int $projectId = null;
+    public ?int $issueId = null;
     public ?string $type = null; // 'file' | 'link' | null
     public ?string $ext = null;  // md, txt, pdf, etc.
     public ?string $tag = null;  // tag filter substring
 
-    public array $projects = [];
+    public array $issues = [];
     public array $results = [];
     public bool $isSearching = false;
 
@@ -30,7 +29,7 @@ class KnowledgeBase extends Component
 
     public function mount(): void
     {
-        $this->projects = Project::orderBy('name')->get(['id', 'name'])->toArray();
+        $this->issues = Issue::orderBy('name')->get(['id', 'name'])->toArray();
         $this->loadCollections();
     }
 
@@ -52,7 +51,7 @@ class KnowledgeBase extends Component
         }
 
         $filters = [
-            'projectId' => $this->projectId,
+            'issueId' => $this->issueId,
             'type' => $this->type,
             'ext' => $this->ext,
             'tag' => $this->tag,
@@ -75,7 +74,7 @@ class KnowledgeBase extends Component
         }
         $this->q = (string) ($c->query ?? '');
         $filters = (array) ($c->filters ?? []);
-        $this->projectId = $filters['projectId'] ?? null;
+        $this->issueId = $filters['issueId'] ?? $filters['projectId'] ?? null;
         $this->type = $filters['type'] ?? null;
         $this->ext = $filters['ext'] ?? null;
         $this->tag = $filters['tag'] ?? null;
@@ -99,19 +98,7 @@ class KnowledgeBase extends Component
 
         $this->isSearching = true;
 
-        // FTS5 match string (basic)
-        $match = $query;
-
-        // Get candidate doc IDs + snippet from FTS, order by bm25
-        $ftsRows = DB::select("
-            SELECT doc_id,
-                   snippet(kb_index, 3, '<mark>', '</mark>', '…', 10) AS snip,
-                   bm25(kb_index) AS rank
-            FROM kb_index
-            WHERE kb_index MATCH ?
-            ORDER BY rank ASC
-            LIMIT 200
-        ", [$match]);
+        $ftsRows = $this->searchKbIndex($query);
 
         $ids = collect($ftsRows)->pluck('doc_id')->unique()->values();
         $snippetMap = collect($ftsRows)->keyBy('doc_id')->map(fn($r) => $r->snip)->all();
@@ -122,12 +109,12 @@ class KnowledgeBase extends Component
         }
 
         // Apply filters via Eloquent
-        $docsQuery = ProjectDocument::with(['project'])
+        $docsQuery = IssueDocument::with(['issue'])
             ->whereIn('id', $ids)
             ->where('is_knowledge_base', true);
 
-        if ($this->projectId) {
-            $docsQuery->where('project_id', $this->projectId);
+        if ($this->issueId) {
+            $docsQuery->where('issue_id', $this->issueId);
         }
         if ($this->type) {
             $docsQuery->where('type', $this->type);
@@ -145,16 +132,16 @@ class KnowledgeBase extends Component
             $rankIndex[$row->doc_id] = $i;
         }
 
-        $docs = $docsQuery->get()->sortBy(function (ProjectDocument $d) use ($rankIndex) {
+        $docs = $docsQuery->get()->sortBy(function (IssueDocument $d) use ($rankIndex) {
             return $rankIndex[$d->id] ?? PHP_INT_MAX;
         })->take(50);
 
-        $this->results = $docs->map(function (ProjectDocument $d) use ($snippetMap) {
+        $this->results = $docs->map(function (IssueDocument $d) use ($snippetMap) {
             return [
                 'id' => $d->id,
-                'project_id' => $d->project_id,
+                'issue_id' => $d->issue_id,
                 'title' => $d->title,
-                'project' => $d->project?->name,
+                'issue' => $d->issue?->name,
                 'type' => $d->type,
                 'file_type' => $d->file_type,
                 'url' => $d->type === 'link' ? $d->url : null,
@@ -167,6 +154,58 @@ class KnowledgeBase extends Component
         })->values()->all();
 
         $this->isSearching = false;
+    }
+
+    protected function searchKbIndex(string $query): array
+    {
+        $driver = DB::getDriverName();
+
+        try {
+            if ($driver === 'sqlite') {
+                return DB::select("
+                    SELECT doc_id,
+                           snippet(kb_index, 3, '<mark>', '</mark>', '…', 10) AS snip,
+                           bm25(kb_index) AS rank
+                    FROM kb_index
+                    WHERE kb_index MATCH ?
+                    ORDER BY rank ASC
+                    LIMIT 200
+                ", [$query]);
+            }
+
+            if ($driver === 'pgsql') {
+                return DB::select("
+                    SELECT doc_id,
+                           ts_headline(
+                               'english',
+                               coalesce(body, ''),
+                               websearch_to_tsquery('english', ?),
+                               'StartSel=<mark>,StopSel=</mark>,MaxFragments=2,MaxWords=12,MinWords=3'
+                           ) AS snip,
+                           ts_rank_cd(
+                               to_tsvector('english', coalesce(title, '') || ' ' || coalesce(body, '')),
+                               websearch_to_tsquery('english', ?)
+                           ) AS rank
+                    FROM kb_index
+                    WHERE to_tsvector('english', coalesce(title, '') || ' ' || coalesce(body, ''))
+                        @@ websearch_to_tsquery('english', ?)
+                    ORDER BY rank DESC
+                    LIMIT 200
+                ", [$query, $query, $query]);
+            }
+
+            return DB::table('kb_index')
+                ->selectRaw('doc_id, NULL AS snip, 0 AS rank')
+                ->where(function ($builder) use ($query) {
+                    $builder->where('title', 'like', "%{$query}%")
+                        ->orWhere('body', 'like', "%{$query}%");
+                })
+                ->limit(200)
+                ->get()
+                ->all();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     public function render()

@@ -17,7 +17,7 @@ class Commitment extends Model
         'due_date',
         'completed_at',
         'meeting_id',
-        'project_id',
+        'issue_id',
         'person_id',
         'organization_id',
         'assigned_to',
@@ -64,9 +64,9 @@ class Commitment extends Model
         return $this->belongsTo(Meeting::class);
     }
 
-    public function project(): BelongsTo
+    public function issue(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Issue::class);
     }
 
     public function person(): BelongsTo
@@ -113,8 +113,8 @@ class Commitment extends Model
         if ($this->person) {
             return $this->person->name;
         }
-        if ($this->project) {
-            return $this->project->name;
+        if ($this->issue) {
+            return $this->issue->name;
         }
         return 'Unknown';
     }

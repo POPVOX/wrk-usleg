@@ -4,13 +4,10 @@ namespace App\Livewire;
 
 use App\Jobs\SyncCalendarEvents;
 use App\Models\Action;
-use App\Models\Project;
+use App\Models\Issue;
 use App\Models\Meeting;
 use App\Models\PressClip;
-use App\Models\Grant;
-use App\Models\ReportingRequirement;
 use App\Services\GoogleCalendarService;
-use App\Services\ProjectStatusService;
 use App\Services\ChatService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -122,8 +119,8 @@ class Dashboard extends Component
         $actionsOverdue = (clone $actionsQuery)->where('due_date', '<', $today)->count();
         $actionsThisWeek = (clone $actionsQuery)->whereBetween('due_date', [$today, $endOfWeek])->count();
 
-        // Projects
-        $activeProjects = Project::whereIn('status', ['active', 'planning'])
+        // Issues (renamed from Projects)
+        $activeIssues = Issue::whereIn('status', ['active', 'planning'])
             ->where(function ($query) use ($userId, $firstName) {
                 $query->where('created_by', $userId)
                     ->orWhere('lead', 'like', "%{$firstName}%")
@@ -131,19 +128,10 @@ class Dashboard extends Component
             })
             ->count();
 
-        $projectActionsPending = Action::where('assigned_to', $userId)
+        $issueActionsPending = Action::where('assigned_to', $userId)
             ->where('status', 'pending')
-            ->whereHas('meeting.projects')
+            ->whereHas('meeting.issues')
             ->count();
-
-        // Reports (admin only)
-        $reportsOverdue = 0;
-        $reportsDueSoon = 0;
-
-        if ($this->user->isAdmin()) {
-            $reportsOverdue = ReportingRequirement::overdue()->count();
-            $reportsDueSoon = ReportingRequirement::upcoming()->count();
-        }
 
         return [
             'meetings_today' => $meetingsToday,
@@ -151,10 +139,8 @@ class Dashboard extends Component
             'actions_due_today' => $actionsDueToday,
             'actions_overdue' => $actionsOverdue,
             'actions_this_week' => $actionsThisWeek,
-            'active_projects' => $activeProjects,
-            'project_actions_pending' => $projectActionsPending,
-            'reports_overdue' => $reportsOverdue,
-            'reports_due_soon' => $reportsDueSoon,
+            'active_issues' => $activeIssues,
+            'issue_actions_pending' => $issueActionsPending,
         ];
     }
 
@@ -165,7 +151,7 @@ class Dashboard extends Component
     {
         $userId = $this->user->id;
 
-        return Meeting::with(['organizations', 'projects'])
+        return Meeting::with(['organizations', 'issues'])
             ->whereDate('meeting_date', today())
             ->where(function ($q) use ($userId) {
                 $q->where('user_id', $userId)
@@ -197,7 +183,7 @@ class Dashboard extends Component
     {
         $userId = $this->user->id;
 
-        return Meeting::with(['organizations', 'projects'])
+        return Meeting::with(['organizations', 'issues'])
             ->where('meeting_date', '>=', today())
             ->where('meeting_date', '<=', today()->addWeek())
             ->where(function ($q) use ($userId) {
@@ -228,14 +214,14 @@ class Dashboard extends Component
     }
 
     /**
-     * Get user's projects
+     * Get user's issues (renamed from projects)
      */
-    public function getMyProjectsProperty()
+    public function getMyIssuesProperty()
     {
         $userId = $this->user->id;
         $firstName = explode(' ', $this->user->name)[0];
 
-        return Project::whereIn('status', ['active', 'planning', 'on_hold'])
+        return Issue::whereIn('status', ['active', 'planning', 'on_hold'])
             ->where(function ($query) use ($userId, $firstName) {
                 $query->where('created_by', $userId)
                     ->orWhere('lead', 'like', "%{$firstName}%")
@@ -248,14 +234,14 @@ class Dashboard extends Component
             ])
             ->orderBy('updated_at', 'desc')
             ->get()
-            ->map(function ($project) {
-                $total = $project->milestones_total_count;
-                $completed = $project->milestones_completed_count;
-                $project->progress_percent = $total > 0
+            ->map(function ($issue) {
+                $total = $issue->milestones_total_count;
+                $completed = $issue->milestones_completed_count;
+                $issue->progress_percent = $total > 0
                     ? round(($completed / $total) * 100)
                     : 0;
-                $project->pending_milestones_count = $total - $completed;
-                return $project;
+                $issue->pending_milestones_count = $total - $completed;
+                return $issue;
             });
     }
 
@@ -305,82 +291,7 @@ class Dashboard extends Component
             ]);
         }
 
-        // Admin: Overdue reports
-        if ($this->user->isAdmin()) {
-            $overdueReports = ReportingRequirement::with('grant.funder')
-                ->overdue()
-                ->get();
-
-            if ($overdueReports->isNotEmpty()) {
-                $items->push([
-                    'severity' => 'overdue',
-                    'title' => $overdueReports->count() . ' report' . ($overdueReports->count() > 1 ? 's' : '') . ' overdue',
-                    'items' => $overdueReports->map(fn($r) => [
-                        'label' => $r->name . ' (' . ($r->grant->funder->name ?? 'Unknown') . ')',
-                        'url' => route('grants.show', $r->grant),
-                    ]),
-                ]);
-            }
-
-            // Grants ending soon
-            $grantsEnding = Grant::with('funder')
-                ->where('status', 'active')
-                ->where('end_date', '<=', now()->addMonths(2))
-                ->where('end_date', '>=', now())
-                ->get();
-
-            if ($grantsEnding->isNotEmpty()) {
-                $items->push([
-                    'severity' => 'info',
-                    'title' => $grantsEnding->count() . ' grant' . ($grantsEnding->count() > 1 ? 's' : '') . ' ending soon',
-                    'items' => $grantsEnding->map(fn($g) => [
-                        'label' => $g->name . ' (' . $g->end_date->format('M j') . ')',
-                        'url' => route('grants.show', $g),
-                    ]),
-                ]);
-            }
-        }
-
         return $items->sortBy(fn($i) => $i['severity'] === 'overdue' ? 0 : ($i['severity'] === 'urgent' ? 1 : 2));
-    }
-
-    /**
-     * Get funding alerts (admin only)
-     */
-    public function getFundingAlertsProperty()
-    {
-        if (!$this->user->isAdmin()) {
-            return collect();
-        }
-
-        $alerts = collect();
-
-        // Overdue reports
-        ReportingRequirement::with('grant.funder')
-            ->overdue()
-            ->each(function ($report) use ($alerts) {
-                $alerts->push([
-                    'type' => 'overdue',
-                    'title' => $report->name,
-                    'funder' => $report->grant->funder->name ?? 'Unknown',
-                    'url' => route('grants.show', $report->grant),
-                ]);
-            });
-
-        // Reports due soon
-        ReportingRequirement::with('grant.funder')
-            ->where('status', '!=', 'submitted')
-            ->whereBetween('due_date', [now(), now()->addWeeks(2)])
-            ->each(function ($report) use ($alerts) {
-                $alerts->push([
-                    'type' => 'due_soon',
-                    'title' => $report->name,
-                    'funder' => $report->grant->funder->name ?? 'Unknown',
-                    'url' => route('grants.show', $report->grant),
-                ]);
-            });
-
-        return $alerts->take(6);
     }
 
     /**
@@ -500,9 +411,8 @@ class Dashboard extends Component
             'tomorrowMeetingsCount' => $this->tomorrowMeetingsCount,
             'upcomingMeetings' => $this->upcomingMeetings,
             'myActions' => $this->myActions,
-            'myProjects' => $this->myProjects,
+            'myIssues' => $this->myIssues,
             'needsAttention' => $this->needsAttention,
-            'fundingAlerts' => $this->fundingAlerts,
             'recentCoverage' => $this->recentCoverage,
         ]);
     }

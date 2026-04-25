@@ -14,7 +14,7 @@ class Decision extends Model
         'decision',
         'rationale',
         'outcome',
-        'project_id',
+        'issue_id',
         'meeting_id',
         'made_by',
         'decided_at',
@@ -32,9 +32,9 @@ class Decision extends Model
     }
 
     // Relationships
-    public function project(): BelongsTo
+    public function issue(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Issue::class);
     }
 
     public function meeting(): BelongsTo

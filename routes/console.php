@@ -13,3 +13,9 @@ Schedule::command('calendars:sync')
     ->everyTenMinutes()
     ->withoutOverlapping()
     ->runInBackground();
+
+// Sync Congress.gov data twice daily (9 AM and 5 PM)
+Schedule::command('congress:sync')
+    ->twiceDaily(9, 17)
+    ->withoutOverlapping()
+    ->runInBackground();

@@ -95,16 +95,11 @@ class TeamHub extends Component
         $this->isQuerying = true;
 
         try {
-            // Load handbook content
-            $handbookPath = storage_path('app/documents/staff_handbook.md');
-            $handbookContent = '';
+            // Load all available resources content
+            $resourcesContent = $this->loadResourcesContent();
 
-            if (file_exists($handbookPath)) {
-                $handbookContent = file_get_contents($handbookPath);
-            }
-
-            if (empty($handbookContent)) {
-                $this->aiResponse = "I couldn't find the staff handbook. Please ensure it's been uploaded.";
+            if (empty($resourcesContent)) {
+                $this->aiResponse = "No team resources have been uploaded yet. Add your staff handbook, ethics rules, or training guides to the Resources section, and I'll be able to answer questions about them.";
                 $this->isQuerying = false;
                 return;
             }
@@ -122,7 +117,7 @@ class TeamHub extends Component
             ])->timeout(60)->post('https://api.anthropic.com/v1/messages', [
                         'model' => 'claude-sonnet-4-20250514',
                         'max_tokens' => 2000,
-                        'system' => $this->getHandbookSystemPrompt($handbookContent),
+                        'system' => $this->getResourcesSystemPrompt($resourcesContent),
                         'messages' => [
                             ['role' => 'user', 'content' => $this->aiQuery],
                         ],
@@ -137,7 +132,7 @@ class TeamHub extends Component
                     'content' => $this->aiResponse,
                 ];
             } else {
-                $this->aiResponse = 'Error querying the handbook. Please try again.';
+                $this->aiResponse = 'Error querying resources. Please try again.';
             }
         } catch (\Exception $e) {
             $this->aiResponse = 'Error: ' . $e->getMessage();
@@ -148,24 +143,80 @@ class TeamHub extends Component
         $this->isQuerying = false;
     }
 
-    protected function getHandbookSystemPrompt(string $handbookContent): string
+    /**
+     * Load content from all available team resources
+     */
+    protected function loadResourcesContent(): string
     {
+        $content = [];
+        
+        // Check for staff handbook
+        $handbookPath = storage_path('app/documents/staff_handbook.md');
+        if (file_exists($handbookPath)) {
+            $content[] = "=== STAFF HANDBOOK ===\n" . file_get_contents($handbookPath);
+        }
+        
+        // Check for ethics rules
+        $ethicsPath = storage_path('app/documents/ethics_rules.md');
+        if (file_exists($ethicsPath)) {
+            $content[] = "=== ETHICS RULES & GUIDELINES ===\n" . file_get_contents($ethicsPath);
+        }
+        
+        // Check for training guide
+        $trainingPath = storage_path('app/documents/training_guide.md');
+        if (file_exists($trainingPath)) {
+            $content[] = "=== TRAINING GUIDE ===\n" . file_get_contents($trainingPath);
+        }
+        
+        // Load any additional documents from documents folder
+        $documentsPath = storage_path('app/documents');
+        if (is_dir($documentsPath)) {
+            $files = glob($documentsPath . '/*.{md,txt}', GLOB_BRACE);
+            foreach ($files as $file) {
+                $filename = basename($file);
+                // Skip files we've already loaded
+                if (in_array($filename, ['staff_handbook.md', 'ethics_rules.md', 'training_guide.md'])) {
+                    continue;
+                }
+                $title = strtoupper(str_replace(['_', '.md', '.txt'], [' ', '', ''], $filename));
+                $content[] = "=== {$title} ===\n" . file_get_contents($file);
+            }
+        }
+        
+        // Include team resources from database (descriptions only for now)
+        $resources = TeamResource::all();
+        if ($resources->isNotEmpty()) {
+            $resourceList = [];
+            foreach ($resources as $resource) {
+                $resourceList[] = "- {$resource->title}: {$resource->description} (URL: {$resource->url})";
+            }
+            $content[] = "=== TEAM RESOURCES LINKS ===\n" . implode("\n", $resourceList);
+        }
+        
+        return implode("\n\n", $content);
+    }
+
+    protected function getResourcesSystemPrompt(string $resourcesContent): string
+    {
+        $officeName = config('office.member_name', 'the office');
+        
         return <<<PROMPT
-You are a helpful assistant for the POPVOX Foundation staff team. You have access to the staff handbook and can answer questions about team policies, procedures, culture, and work approaches.
+You are a helpful assistant for staff in {$officeName}'s office. You have access to team resources including the staff handbook, ethics rules, training guides, and other policy documents.
 
-Here is the staff handbook content:
+Here are the available resources:
 
-<handbook>
-{$handbookContent}
-</handbook>
+<resources>
+{$resourcesContent}
+</resources>
 
 Guidelines:
-- Answer questions based on the handbook content.
+- Answer questions based on the available resources content.
 - Be friendly, concise, and helpful.
-- If the answer isn't in the handbook, say so clearly.
+- If the answer isn't in the resources, say so clearly and suggest where they might find the information.
 - For questions about specific policies, quote relevant sections when helpful.
 - Use a conversational but professional tone appropriate for colleagues.
-- If asked about something outside the handbook scope, politely redirect to the appropriate resource or person.
+- If asked about something outside the scope of available resources, politely indicate that and suggest asking a supervisor or the appropriate person.
+- For questions about ethics rules, be especially careful to accurately quote the rules.
 PROMPT;
     }
 

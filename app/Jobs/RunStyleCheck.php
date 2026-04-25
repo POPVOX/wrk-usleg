@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\Project;
-use App\Models\ProjectDocument;
+use App\Models\Issue;
+use App\Models\IssueDocument;
 use App\Support\AI\AnthropicClient;
 use App\Services\DocumentSafety;
 use Illuminate\Bus\Queueable;
@@ -18,7 +18,7 @@ class RunStyleCheck implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $projectId;
+    public int $issueId;
     public int $documentId;
     public string $filePath;
     public string $content;
@@ -26,9 +26,9 @@ class RunStyleCheck implements ShouldQueue
 
     public $timeout = 120;
 
-    public function __construct(int $projectId, int $documentId, string $filePath, string $content)
+    public function __construct(int $issueId, int $documentId, string $filePath, string $content)
     {
-        $this->projectId = $projectId;
+        $this->issueId = $issueId;
         $this->documentId = $documentId;
         $this->filePath = $filePath;
         $this->content = $content;
@@ -37,22 +37,22 @@ class RunStyleCheck implements ShouldQueue
 
     public function handle(): void
     {
-        $project = Project::find($this->projectId);
-        $document = ProjectDocument::find($this->documentId);
+        $issue = Issue::find($this->issueId);
+        $document = IssueDocument::find($this->documentId);
 
-        if (!$project || !$document || $document->project_id !== $project->id) {
-            Log::warning('RunStyleCheck: Project/Document mismatch or missing', [
-                'project_id' => $this->projectId,
+        if (!$issue || !$document || $document->issue_id !== $issue->id) {
+            Log::warning('RunStyleCheck: Issue/Document mismatch or missing', [
+                'issue_id' => $this->issueId,
                 'document_id' => $this->documentId,
             ]);
             return;
         }
 
-        $styleGuidePath = base_path('POPVOX Foundation Style Guide.md');
+        $styleGuidePath = base_path('docs/style-guide.md');
         $styleGuide = is_file($styleGuidePath) ? (file_get_contents($styleGuidePath) ?: '') : '';
 
         $system = "You are a writing assistant that strictly returns JSON.\n"
-            . "You check content for compliance with the POPVOX Foundation Style Guide and suggest improvements.\n"
+            . "You check content for compliance with the style guide and suggest improvements.\n"
             . "Return a JSON object with the shape: {\"suggestions\": [{\"original\": string, \"replacement\": string, \"rule\": string, \"importance\": \"high\"|\"medium\"|\"low\"}]}.\n"
             . "Do not include any additional text.";
 
@@ -93,7 +93,7 @@ PROMPT;
         $storePath = "style_checks/{$this->documentId}-{$this->contentHash}.json";
         Storage::disk('local')->put($storePath, json_encode([
             'document_id' => $this->documentId,
-            'project_id' => $this->projectId,
+            'issue_id' => $this->issueId,
             'file_path' => $this->filePath,
             'content_hash' => $this->contentHash,
             'suggestions' => $suggestions,
@@ -107,7 +107,7 @@ PROMPT;
         $document->save();
 
         Log::info('RunStyleCheck complete', [
-            'project_id' => $this->projectId,
+            'issue_id' => $this->issueId,
             'document_id' => $this->documentId,
             'suggestions' => count($suggestions),
             'content_hash' => $this->contentHash,

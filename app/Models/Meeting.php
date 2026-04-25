@@ -62,7 +62,7 @@ class Meeting extends Model
     }
 
     /**
-     * Get the lead POPVOX Fdn contact for this meeting.
+     * Get the lead contact for this meeting.
      */
     public function leadContact(): BelongsTo
     {
@@ -88,11 +88,12 @@ class Meeting extends Model
     }
 
     /**
-     * Get the issues discussed in this meeting.
+     * Get the topics discussed in this meeting.
+     * (Renamed from issues - these are simple tags/policy areas)
      */
-    public function issues(): BelongsToMany
+    public function topics(): BelongsToMany
     {
-        return $this->belongsToMany(Issue::class, 'meeting_issue')
+        return $this->belongsToMany(Topic::class, 'meeting_topic')
             ->withTimestamps();
     }
 
@@ -113,7 +114,7 @@ class Meeting extends Model
     }
 
     /**
-     * Get the POPVOX team members who attended this meeting.
+     * Get the team members who attended this meeting.
      */
     public function teamMembers(): BelongsToMany
     {
@@ -138,11 +139,12 @@ class Meeting extends Model
     }
 
     /**
-     * Get the projects this meeting is linked to.
+     * Get the issues this meeting is linked to.
+     * (Renamed from projects - these are full-featured policy issues)
      */
-    public function projects(): BelongsToMany
+    public function issues(): BelongsToMany
     {
-        return $this->belongsToMany(Project::class)
+        return $this->belongsToMany(Issue::class, 'issue_meeting')
             ->withPivot('relevance_note')
             ->withTimestamps();
     }
@@ -225,4 +227,3 @@ class Meeting extends Model
         return \Illuminate\Support\Str::limit(strip_tags($this->raw_notes), 120);
     }
 }
-

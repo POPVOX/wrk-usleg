@@ -453,26 +453,26 @@
                             </div>
                         @endif
 
-                        {{-- Projects --}}
+                        {{-- Issues --}}
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Associated Projects</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Associated Issues</h3>
                             @php
-                                $projects = \App\Models\Project::whereHas('staff', fn($q) => $q->where('users.id', $member->id))->get();
+                                $issues = \App\Models\Issue::whereHas('staff', fn($q) => $q->where('users.id', $member->id))->get();
                             @endphp
-                            @if($projects->count() > 0)
+                            @if($issues->count() > 0)
                                 <div class="space-y-3">
-                                    @foreach($projects as $project)
-                                        <a href="{{ route('projects.show', $project) }}" wire:navigate
+                                    @foreach($issues as $issue)
+                                        <a href="{{ route('issues.show', $issue) }}" wire:navigate
                                             class="block p-3 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                                            <div class="font-medium text-gray-900 dark:text-white">{{ $project->name }}</div>
-                                            @if($project->pivot?->role)
-                                                <div class="text-sm text-gray-500 dark:text-gray-400">Role: {{ $project->pivot->role }}</div>
+                                            <div class="font-medium text-gray-900 dark:text-white">{{ $issue->name }}</div>
+                                            @if($issue->pivot?->role)
+                                                <div class="text-sm text-gray-500 dark:text-gray-400">Role: {{ $issue->pivot->role }}</div>
                                             @endif
                                         </a>
                                     @endforeach
                                 </div>
                             @else
-                                <p class="text-gray-500 dark:text-gray-400 text-sm">No projects assigned yet.</p>
+                                <p class="text-gray-500 dark:text-gray-400 text-sm">No issues assigned yet.</p>
                             @endif
                         </div>
 

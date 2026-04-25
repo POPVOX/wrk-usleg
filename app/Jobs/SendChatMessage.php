@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\Project;
-use App\Models\ProjectChatMessage;
+use App\Models\Issue;
+use App\Models\IssueChatMessage;
 use App\Support\AI\AnthropicClient;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,16 +17,16 @@ class SendChatMessage implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $projectId;
+    public int $issueId;
     public int $userId;
     public string $prompt;
     public string $system;
 
     public $timeout = 90;
 
-    public function __construct(int $projectId, int $userId, string $prompt, string $system)
+    public function __construct(int $issueId, int $userId, string $prompt, string $system)
     {
-        $this->projectId = $projectId;
+        $this->issueId = $issueId;
         $this->userId = $userId;
         $this->prompt = $prompt;
         $this->system = $system;
@@ -34,9 +34,9 @@ class SendChatMessage implements ShouldQueue
 
     public function handle(): void
     {
-        $project = Project::find($this->projectId);
-        if (!$project) {
-            Log::warning('SendChatMessage: Project not found', ['project_id' => $this->projectId]);
+        $issue = Issue::find($this->issueId);
+        if (!$issue) {
+            Log::warning('SendChatMessage: Issue not found', ['issue_id' => $this->issueId]);
             return;
         }
 
@@ -50,15 +50,15 @@ class SendChatMessage implements ShouldQueue
 
         $text = $response['content'][0]['text'] ?? 'No response generated.';
 
-        ProjectChatMessage::create([
-            'project_id' => $this->projectId,
+        IssueChatMessage::create([
+            'issue_id' => $this->issueId,
             'user_id' => $this->userId,
             'role' => 'assistant',
             'content' => $text,
         ]);
 
         Log::info('SendChatMessage: assistant message saved', [
-            'project_id' => $this->projectId,
+            'issue_id' => $this->issueId,
             'user_id' => $this->userId,
         ]);
     }

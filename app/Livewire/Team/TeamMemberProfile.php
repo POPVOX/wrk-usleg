@@ -117,9 +117,9 @@ class TeamMemberProfile extends Component
         }
     }
 
-    public function getProjectsProperty()
+    public function getIssuesProperty()
     {
-        return $this->member->projects ?? collect();
+        return $this->member->issues ?? collect();
     }
 
     public function getRecentMeetingsProperty()

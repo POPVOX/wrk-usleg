@@ -4,12 +4,11 @@ namespace App\Livewire;
 
 use App\Models\Commitment;
 use App\Models\Decision;
-use App\Models\Issue;
+use App\Models\Topic;
 use App\Models\Meeting;
 use App\Models\Organization;
 use App\Models\Person;
-use App\Models\Project;
-use App\Models\ReportingRequirement;
+use App\Models\Issue;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\Layout;
@@ -72,19 +71,19 @@ class KnowledgeHub extends Component
             ];
         }
 
-        // Search Projects
-        $projects = Project::where('name', 'like', $term)
+        // Search Issues (policy issues being tracked)
+        $issues = Issue::where('name', 'like', $term)
             ->orWhere('description', 'like', $term)
             ->take(5)
             ->get();
 
-        foreach ($projects as $project) {
+        foreach ($issues as $issue) {
             $results[] = [
-                'source_type' => 'project',
-                'title' => $project->name,
-                'snippet' => \Str::limit($project->description, 150),
-                'url' => route('projects.show', $project),
-                'date' => $project->created_at,
+                'source_type' => 'issue',
+                'title' => $issue->name,
+                'snippet' => \Str::limit($issue->description, 150),
+                'url' => route('issues.show', $issue),
+                'date' => $issue->created_at,
             ];
         }
 
@@ -139,7 +138,7 @@ class KnowledgeHub extends Component
         // Search Decisions
         $decisions = Decision::where('decision', 'like', $term)
             ->orWhere('rationale', 'like', $term)
-            ->with(['project', 'meeting'])
+            ->with(['issue', 'meeting'])
             ->take(5)
             ->get();
 
@@ -148,9 +147,9 @@ class KnowledgeHub extends Component
                 'source_type' => 'decision',
                 'title' => \Str::limit($decision->decision, 80),
                 'snippet' => $decision->rationale ? \Str::limit($decision->rationale, 100) : null,
-                'url' => $decision->meeting ? route('meetings.show', $decision->meeting) : ($decision->project ? route('projects.show', $decision->project) : '#'),
+                'url' => $decision->meeting ? route('meetings.show', $decision->meeting) : ($decision->issue ? route('issues.show', $decision->issue) : '#'),
                 'date' => $decision->decided_at,
-                'project' => $decision->project?->name,
+                'issue' => $decision->issue?->name,
             ];
         }
 
@@ -177,7 +176,7 @@ class KnowledgeHub extends Component
             ])->timeout(30)->post('https://api.anthropic.com/v1/messages', [
                         'model' => 'claude-sonnet-4-20250514',
                         'max_tokens' => 1500,
-                        'system' => "You are a helpful assistant for POPVOX Foundation staff. Answer questions based on the organizational knowledge provided. Be concise but thorough. If the context doesn't contain enough information, say so. Cite specific meetings, projects, or people when relevant.",
+                        'system' => "You are a helpful assistant for congressional office staff. Answer questions based on the organizational knowledge provided. Be concise but thorough. If the context doesn't contain enough information, say so. Cite specific meetings, issues, or people when relevant.",
                         'messages' => [
                             [
                                 'role' => 'user',
@@ -218,14 +217,14 @@ class KnowledgeHub extends Component
             $context[] = "MEETING ({$m->meeting_date?->format('M j, Y')}) - {$m->title}\nOrganizations: {$orgs}\nNotes: " . \Str::limit($m->raw_notes, 500);
         }
 
-        // Get relevant projects
-        $projects = Project::where('name', 'like', $term)
+        // Get relevant issues
+        $issues = Issue::where('name', 'like', $term)
             ->orWhere('description', 'like', $term)
             ->take(3)
             ->get();
 
-        foreach ($projects as $p) {
-            $context[] = "PROJECT: {$p->name}\nStatus: {$p->status}\nDescription: " . \Str::limit($p->description, 300);
+        foreach ($issues as $i) {
+            $context[] = "ISSUE: {$i->name}\nStatus: {$i->status}\nPriority: {$i->priority_level}\nDescription: " . \Str::limit($i->description, 300);
         }
 
         // Get relevant commitments
@@ -282,13 +281,9 @@ class KnowledgeHub extends Component
 
             'meetings_need_notes_count' => Meeting::needsNotes()->count(),
 
-            'reports_due_soon' => $user?->is_admin
-                ? ReportingRequirement::where('status', '!=', 'submitted')
-                    ->where('due_date', '<=', now()->addWeek())
-                    ->with(['grant.funder'])
-                    ->limit(3)
-                    ->get()
-                : collect(),
+            // Reports due soon - placeholder empty collection for now
+            // This can be populated when reporting requirements are fully implemented
+            'reports_due_soon' => collect([]),
         ];
     }
 
@@ -296,7 +291,7 @@ class KnowledgeHub extends Component
     public function getThisWeekMeetingsProperty()
     {
         return Meeting::whereBetween('meeting_date', [now()->startOfDay(), now()->endOfWeek()])
-            ->with(['people', 'organizations', 'issues'])
+            ->with(['people', 'organizations', 'topics'])
             ->orderBy('meeting_date')
             ->limit(8)
             ->get()
@@ -325,7 +320,7 @@ class KnowledgeHub extends Component
         $thirtyDaysAgo = now()->subDays(30);
 
         // Topics discussed this month
-        $topicCounts = Issue::withCount([
+        $topicCounts = Topic::withCount([
             'meetings' => fn($q) => $q->where('meeting_date', '>=', $thirtyDaysAgo)
         ])
             ->get()
@@ -345,7 +340,7 @@ class KnowledgeHub extends Component
             ->values();
 
         // Recent decisions
-        $recentDecisions = Decision::with(['project', 'madeBy'])
+        $recentDecisions = Decision::with(['issue', 'madeBy'])
             ->where('decided_at', '>=', $thirtyDaysAgo)
             ->orderByDesc('decided_at')
             ->limit(3)
@@ -377,7 +372,7 @@ class KnowledgeHub extends Component
         }
 
         // Based on active topics
-        $topTopic = Issue::withCount([
+        $topTopic = Topic::withCount([
             'meetings' => fn($q) => $q->where('meeting_date', '>=', now()->subDays(30))
         ])
             ->get()
@@ -391,7 +386,7 @@ class KnowledgeHub extends Component
 
         // Standard queries
         $queries[] = "What commitments are due this week?";
-        $queries[] = "What are our current project priorities?";
+        $queries[] = "What are our current issue priorities?";
 
         return array_slice($queries, 0, 4);
     }

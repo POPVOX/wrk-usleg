@@ -35,11 +35,11 @@ class OrganizationShow extends Component
     public string $newPersonEmail = '';
     public string $newPersonLinkedIn = '';
 
-    // Project linking
-    public bool $showAddProjectModal = false;
-    public string $projectSearch = '';
-    public ?int $selectedProjectId = null;
-    public string $projectRole = '';
+    // Issue linking
+    public bool $showAddIssueModal = false;
+    public string $issueSearch = '';
+    public ?int $selectedIssueId = null;
+    public string $issueRole = '';
 
     public function mount(Organization $organization)
     {
@@ -179,10 +179,10 @@ class OrganizationShow extends Component
             ->orderByDesc('created_at')
             ->get();
 
-        $projects = $this->organization->projects()->orderBy('name')->get();
+        $issues = $this->organization->issues()->orderBy('name')->get();
 
-        $projectResults = $this->projectSearch && strlen($this->projectSearch) >= 2
-            ? \App\Models\Project::where('name', 'like', '%' . $this->projectSearch . '%')
+        $issueResults = $this->issueSearch && strlen($this->issueSearch) >= 2
+            ? \App\Models\Issue::where('name', 'like', '%' . $this->issueSearch . '%')
                 ->where('status', '!=', 'archived')
                 ->limit(10)
                 ->get()
@@ -305,46 +305,46 @@ class OrganizationShow extends Component
         }
     }
 
-    // --- Project Linking ---
-    public function toggleAddProjectModal()
+    // --- Issue Linking ---
+    public function toggleAddIssueModal()
     {
-        $this->showAddProjectModal = !$this->showAddProjectModal;
-        $this->projectSearch = '';
-        $this->selectedProjectId = null;
-        $this->projectRole = '';
+        $this->showAddIssueModal = !$this->showAddIssueModal;
+        $this->issueSearch = '';
+        $this->selectedIssueId = null;
+        $this->issueRole = '';
     }
 
-    public function selectProject(int $projectId)
+    public function selectIssue(int $issueId)
     {
-        $this->selectedProjectId = $projectId;
-        $project = \App\Models\Project::find($projectId);
-        $this->projectSearch = $project ? $project->name : '';
+        $this->selectedIssueId = $issueId;
+        $issue = \App\Models\Issue::find($issueId);
+        $this->issueSearch = $issue ? $issue->name : '';
     }
 
-    public function linkProject()
+    public function linkIssue()
     {
-        if (!$this->selectedProjectId) {
+        if (!$this->selectedIssueId) {
             return;
         }
 
-        if ($this->organization->projects()->where('project_id', $this->selectedProjectId)->exists()) {
-            $this->dispatch('notify', type: 'error', message: 'Project already linked.');
+        if ($this->organization->issues()->where('issue_id', $this->selectedIssueId)->exists()) {
+            $this->dispatch('notify', type: 'error', message: 'Issue already linked.');
             return;
         }
 
-        $this->organization->projects()->attach($this->selectedProjectId, [
-            'role' => $this->projectRole ?: null,
+        $this->organization->issues()->attach($this->selectedIssueId, [
+            'role' => $this->issueRole ?: null,
         ]);
 
-        $this->toggleAddProjectModal();
+        $this->toggleAddIssueModal();
         $this->organization->refresh();
-        $this->dispatch('notify', type: 'success', message: 'Project linked!');
+        $this->dispatch('notify', type: 'success', message: 'Issue linked!');
     }
 
-    public function unlinkProject(int $projectId)
+    public function unlinkIssue(int $issueId)
     {
-        $this->organization->projects()->detach($projectId);
+        $this->organization->issues()->detach($issueId);
         $this->organization->refresh();
-        $this->dispatch('notify', type: 'success', message: 'Project removed.');
+        $this->dispatch('notify', type: 'success', message: 'Issue removed.');
     }
 }

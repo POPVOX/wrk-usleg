@@ -3,11 +3,11 @@
 namespace App\Services;
 
 use App\Models\Meeting;
-use App\Models\Project;
+use App\Models\Issue;
+use App\Models\IssueDecision;
 use App\Models\Organization;
 use App\Models\Person;
-use App\Models\ProjectDecision;
-use App\Models\Issue;
+use App\Models\Topic;
 use App\Support\AI\AnthropicClient;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -80,7 +80,7 @@ class ChatService
                         ->orWhere('raw_notes', $like, "%{$term}%");
                 }
             })
-            ->with(['organizations', 'people', 'projects'])
+            ->with(['organizations', 'people', 'issues'])
             ->latest('meeting_date')
             ->limit(10)
             ->get();
@@ -90,14 +90,14 @@ class ChatService
                 'date' => $m->meeting_date?->format('M j, Y'),
                 'organizations' => $m->organizations->pluck('name')->join(', '),
                 'people' => $m->people->pluck('name')->join(', '),
-                'projects' => $m->projects->pluck('name')->join(', '),
+                'issues' => $m->issues->pluck('name')->join(', '),
                 'summary' => Str::limit($m->ai_summary ?? $m->raw_notes, 500),
                 'key_ask' => $m->key_ask,
             ])->toArray();
         }
 
-        // Search projects
-        $projects = Project::query()
+        // Search issues (renamed from projects)
+        $issues = Issue::query()
             ->where(function ($q) use ($searchTerms, $query, $like) {
                 $q->where('name', $like, "%{$query}%")
                     ->orWhere('description', $like, "%{$query}%")
@@ -112,20 +112,21 @@ class ChatService
             ->limit(5)
             ->get();
 
-        if ($projects->isNotEmpty()) {
-            $context['projects'] = $projects->map(fn($p) => [
-                'name' => $p->name,
-                'status' => $p->status,
-                'description' => Str::limit($p->description, 300),
-                'goals' => $p->goals,
-                'ai_status' => $p->ai_status_summary,
-                'pending_milestones' => $p->milestones->where('status', '!=', 'completed')->pluck('title'),
-                'open_questions' => $p->openQuestions->pluck('question'),
+        if ($issues->isNotEmpty()) {
+            $context['issues'] = $issues->map(fn($i) => [
+                'name' => $i->name,
+                'status' => $i->status,
+                'priority' => $i->priority_level,
+                'description' => Str::limit($i->description, 300),
+                'goals' => $i->goals,
+                'ai_status' => $i->ai_status_summary,
+                'pending_milestones' => $i->milestones->where('status', '!=', 'completed')->pluck('title'),
+                'open_questions' => $i->openQuestions->pluck('question'),
             ])->toArray();
         }
 
         // Search decisions
-        $decisions = ProjectDecision::query()
+        $decisions = IssueDecision::query()
             ->where(function ($q) use ($searchTerms, $query, $like) {
                 $q->where('title', $like, "%{$query}%")
                     ->orWhere('description', $like, "%{$query}%")
@@ -137,7 +138,7 @@ class ChatService
                         ->orWhere('rationale', $like, "%{$term}%");
                 }
             })
-            ->with('project')
+            ->with('issue')
             ->latest('decision_date')
             ->limit(10)
             ->get();
@@ -145,7 +146,7 @@ class ChatService
         if ($decisions->isNotEmpty()) {
             $context['decisions'] = $decisions->map(fn($d) => [
                 'title' => $d->title,
-                'project' => $d->project?->name,
+                'issue' => $d->issue?->name,
                 'date' => $d->decision_date?->format('M j, Y'),
                 'description' => $d->description,
                 'rationale' => $d->rationale,
@@ -203,17 +204,17 @@ class ChatService
             ])->toArray();
         }
 
-        // Search issues
-        $issues = Issue::query()
+        // Search topics
+        $topics = Topic::query()
             ->where('name', $like, "%{$query}%")
             ->withCount('meetings')
             ->limit(5)
             ->get();
 
-        if ($issues->isNotEmpty()) {
-            $context['issues'] = $issues->map(fn($i) => [
-                'name' => $i->name,
-                'meetings_count' => $i->meetings_count,
+        if ($topics->isNotEmpty()) {
+            $context['topics'] = $topics->map(fn($t) => [
+                'name' => $t->name,
+                'meetings_count' => $t->meetings_count,
             ])->toArray();
         }
 
@@ -221,11 +222,35 @@ class ChatService
         try {
             if (DB::getDriverName() === 'sqlite') {
                 $kbMatches = DB::select(
-                    'SELECT doc_id, title, snippet(kb_index, 2, "[[", "]]", "...", 8) AS snippet
+                    'SELECT doc_id, title, snippet(kb_index, 3, "[[", "]]", "...", 8) AS snippet
                      FROM kb_index
                      WHERE kb_index MATCH ?
                      LIMIT 5',
                     [$query]
+                );
+
+                if (!empty($kbMatches)) {
+                    $context['kb_matches'] = collect($kbMatches)->map(fn($row) => [
+                        'doc_id' => $row->doc_id,
+                        'title' => $row->title,
+                        'snippet' => $row->snippet,
+                    ])->toArray();
+                }
+            } elseif (DB::getDriverName() === 'pgsql') {
+                $kbMatches = DB::select(
+                    "SELECT doc_id,
+                            title,
+                            ts_headline(
+                                'english',
+                                coalesce(body, ''),
+                                websearch_to_tsquery('english', ?),
+                                'StartSel=[[,StopSel=]],MaxFragments=2,MaxWords=8,MinWords=3'
+                            ) AS snippet
+                     FROM kb_index
+                     WHERE to_tsvector('english', coalesce(title, '') || ' ' || coalesce(body, ''))
+                        @@ websearch_to_tsquery('english', ?)
+                     LIMIT 5",
+                    [$query, $query]
                 );
 
                 if (!empty($kbMatches)) {
@@ -242,7 +267,7 @@ class ChatService
 
         // If query asks about "recent" or time-based, add recent meetings regardless of search match
         if (Str::contains(strtolower($query), ['recent', 'last week', 'last month', 'this week', 'today', 'yesterday', 'latest'])) {
-            $recentMeetings = Meeting::with(['organizations', 'projects'])
+            $recentMeetings = Meeting::with(['organizations', 'issues'])
                 ->latest('meeting_date')
                 ->limit(10)
                 ->get();
@@ -250,7 +275,7 @@ class ChatService
             $context['recent_meetings'] = $recentMeetings->map(fn($m) => [
                 'date' => $m->meeting_date?->format('M j, Y'),
                 'organizations' => $m->organizations->pluck('name')->join(', '),
-                'projects' => $m->projects->pluck('name')->join(', '),
+                'issues' => $m->issues->pluck('name')->join(', '),
                 'summary' => Str::limit($m->ai_summary ?? $m->raw_notes, 300),
             ])->toArray();
         }
@@ -271,26 +296,26 @@ class ChatService
             ])->toArray();
 
             // Also get overdue milestones
-            $overdueMilestones = \App\Models\ProjectMilestone::where('status', '!=', 'completed')
-                ->whereNotNull('target_date')
-                ->where('target_date', '<', now())
-                ->with('project')
+            $overdueMilestones = \App\Models\IssueMilestone::where('status', '!=', 'completed')
+                ->whereNotNull('due_date')
+                ->where('due_date', '<', now())
+                ->with('issue')
                 ->get();
 
             $context['overdue_milestones'] = $overdueMilestones->map(fn($m) => [
                 'title' => $m->title,
-                'project' => $m->project?->name,
-                'target_date' => $m->target_date?->format('M j, Y'),
+                'issue' => $m->issue?->name,
+                'due_date' => $m->due_date?->format('M j, Y'),
             ])->toArray();
         }
 
         // Add summary stats
         $context['system_stats'] = [
             'total_meetings' => Meeting::count(),
-            'total_projects' => Project::where('status', 'active')->count(),
+            'total_issues' => Issue::where('status', 'active')->count(),
             'total_organizations' => Organization::count(),
             'total_people' => Person::count(),
-            'open_questions' => \App\Models\ProjectQuestion::where('status', 'open')->count(),
+            'open_questions' => \App\Models\IssueQuestion::where('status', 'open')->count(),
             'pending_actions' => \App\Models\Action::where('status', 'pending')->count(),
         ];
 
@@ -315,14 +340,14 @@ class ChatService
     protected function getSystemPrompt(): string
     {
         return <<<PROMPT
-You are an AI assistant for the POPVOX Foundation Meetings Intel tool. You help users understand their meetings, projects, relationships, and decisions.
+You are an AI assistant for a Congressional Office management tool. You help users understand their meetings, issues, relationships, and decisions.
 
 Your knowledge base includes:
 - Meetings (with summaries, organizations involved, key asks)
-- Projects (with status, milestones, decisions, open questions)
+- Issues (policy issues being tracked, with status, milestones, decisions, open questions)
 - Organizations and People (contacts, relationships)
 - Decisions (what was decided, why, in what context)
-- Issues/topics being tracked
+- Topics being tracked
 
 When answering:
 1. Be specific and reference actual data when available
@@ -332,7 +357,7 @@ When answering:
 5. Be concise but complete
 6. If the user asks about something you don't have data on, suggest what they might search for
 
-You're helping a small nonprofit team stay on top of their work. Be helpful and practical.
+You're helping a congressional office team stay on top of their work. Be helpful and practical.
 PROMPT;
     }
 
@@ -363,16 +388,16 @@ PROMPT;
     }
 
     /**
-     * Answer questions about a specific project with full project context
+     * Answer questions about a specific issue with full context
      */
-    public function askAboutProject(Project $project, string $query): string
+    public function askAboutIssue(Issue $issue, string $query): string
     {
         if (!config('ai.enabled')) {
             return 'AI features are disabled by the administrator.';
         }
 
-        // Load project with all relevant relationships
-        $project->load([
+        // Load issue with all relevant relationships
+        $issue->load([
             'meetings.organizations',
             'meetings.people',
             'organizations',
@@ -383,96 +408,99 @@ PROMPT;
             'decisions',
             'milestones',
             'questions',
-            'issues',
+            'topics',
         ]);
 
-        // Build comprehensive project context
+        // Build comprehensive issue context
         $context = [
-            'project' => [
-                'name' => $project->name,
-                'status' => $project->status,
-                'description' => $project->description,
-                'goals' => $project->goals,
-                'start_date' => $project->start_date?->format('M j, Y'),
-                'target_end_date' => $project->target_end_date?->format('M j, Y'),
-                'ai_status_summary' => $project->ai_status_summary,
+            'issue' => [
+                'name' => $issue->name,
+                'status' => $issue->status,
+                'priority' => $issue->priority_level,
+                'description' => $issue->description,
+                'goals' => $issue->goals,
+                'committee_relevance' => $issue->committee_relevance,
+                'legislative_vehicle' => $issue->legislative_vehicle,
+                'start_date' => $issue->start_date?->format('M j, Y'),
+                'target_end_date' => $issue->target_end_date?->format('M j, Y'),
+                'ai_status_summary' => $issue->ai_status_summary,
             ],
-            'team' => $project->staff->map(fn($s) => [
+            'team' => $issue->staff->map(fn($s) => [
                 'name' => $s->name,
                 'role' => $s->pivot->role,
             ])->toArray(),
-            'meetings' => $project->meetings->map(fn($m) => [
+            'meetings' => $issue->meetings->map(fn($m) => [
                 'date' => $m->meeting_date?->format('M j, Y'),
                 'organizations' => $m->organizations->pluck('name')->join(', '),
                 'people' => $m->people->pluck('name')->join(', '),
                 'summary' => Str::limit($m->ai_summary ?? $m->raw_notes, 400),
                 'key_ask' => $m->key_ask,
             ])->toArray(),
-            'organizations' => $project->organizations->map(fn($o) => [
+            'organizations' => $issue->organizations->map(fn($o) => [
                 'name' => $o->name,
                 'role' => $o->pivot->role,
             ])->toArray(),
-            'external_collaborators' => $project->people->map(fn($p) => [
+            'external_collaborators' => $issue->people->map(fn($p) => [
                 'name' => $p->name,
                 'title' => $p->title,
                 'organization' => $p->organization?->name,
             ])->toArray(),
-            'decisions' => $project->decisions->map(fn($d) => [
+            'decisions' => $issue->decisions->map(fn($d) => [
                 'title' => $d->title,
                 'date' => $d->decision_date?->format('M j, Y'),
                 'description' => $d->description,
                 'rationale' => $d->rationale,
             ])->toArray(),
-            'milestones' => $project->milestones->map(fn($m) => [
+            'milestones' => $issue->milestones->map(fn($m) => [
                 'title' => $m->title,
                 'status' => $m->status,
-                'target_date' => $m->target_date?->format('M j, Y'),
+                'due_date' => $m->due_date?->format('M j, Y'),
             ])->toArray(),
-            'open_questions' => $project->questions->where('status', 'open')->map(fn($q) => [
+            'open_questions' => $issue->questions->where('status', 'open')->map(fn($q) => [
                 'question' => $q->question,
                 'context' => $q->context,
             ])->values()->toArray(),
-            'notes' => $project->notes->take(20)->map(fn($n) => [
+            'notes' => $issue->notes->take(20)->map(fn($n) => [
                 'type' => $n->note_type,
                 'content' => Str::limit($n->content, 300),
                 'author' => $n->user?->name,
                 'date' => $n->created_at->format('M j, Y'),
                 'pinned' => $n->is_pinned,
             ])->toArray(),
-            'documents' => $project->documents->map(fn($d) => [
+            'documents' => $issue->documents->map(fn($d) => [
                 'title' => $d->title,
                 'type' => $d->type,
                 'description' => $d->description,
             ])->toArray(),
-            'issues' => $project->issues->pluck('name')->toArray(),
+            'topics' => $issue->topics->pluck('name')->toArray(),
         ];
 
         $contextJson = json_encode($context, JSON_PRETTY_PRINT);
 
         $systemPrompt = <<<PROMPT
-You are an AI assistant helping with project management for the POPVOX Foundation.
+You are an AI assistant helping with issue tracking for a congressional office.
 
-You are answering questions specifically about the project "{$project->name}".
+You are answering questions specifically about the issue "{$issue->name}".
 
-You have full context about this project including:
+You have full context about this issue including:
 - Meetings held and their summaries
 - Team members and collaborators
 - Decisions made and their rationale
 - Milestones and their status
 - Open questions
-- Project notes and updates
+- Issue notes and updates
 - Related documents
-- Connected organizations and issues
+- Connected organizations and topics
 
 When answering:
-1. Be specific and reference actual data from the project
+1. Be specific and reference actual data from the issue
 2. Mention dates, people, and organizations when relevant
 3. If the information isn't in the context, say so
 4. Be concise but complete
-5. Help the user understand the current state of the project
+5. Help the user understand the current state of the issue
 PROMPT;
 
-        $cacheKey = 'ai:project_chat:' . $project->id . ':' . md5($query);
+        $cacheKey = 'ai:issue_chat:' . $issue->id . ':' . md5($query);
 
         try {
             $response = AnthropicClient::send([
@@ -480,7 +508,7 @@ PROMPT;
                 'messages' => [
                     [
                         'role' => 'user',
-                        'content' => "PROJECT CONTEXT:\n{$contextJson}\n\nQUESTION: {$query}",
+                        'content' => "ISSUE CONTEXT:\n{$contextJson}\n\nQUESTION: {$query}",
                     ]
                 ],
                 'max_tokens' => 1500,
@@ -497,7 +525,7 @@ PROMPT;
                 ? $cached . "\n\n(Served from cache while AI response was empty.)"
                 : 'Sorry, I encountered an error processing your request.';
         } catch (\Exception $e) {
-            \Log::error('ChatService askAboutProject error: ' . $e->getMessage());
+            \Log::error('ChatService askAboutIssue error: ' . $e->getMessage());
             $cached = Cache::get($cacheKey);
             return $cached
                 ? $cached . "\n\n(Served from cache because AI is unavailable.)"

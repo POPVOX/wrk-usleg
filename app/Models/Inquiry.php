@@ -20,7 +20,7 @@ class Inquiry extends Model
         'journalist_email',
         'outlet_id',
         'outlet_name',
-        'project_id',
+        'issue_id',
         'handled_by',
         'response_notes',
         'ai_insights',
@@ -46,9 +46,14 @@ class Inquiry extends Model
         return $this->belongsTo(Organization::class, 'outlet_id');
     }
 
-    public function project(): BelongsTo
+    public function issue(): BelongsTo
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(Issue::class);
+    }
+
+    public function topics(): BelongsToMany
+    {
+        return $this->belongsToMany(Topic::class, 'inquiry_topic');
     }
 
     public function handledBy(): BelongsTo
@@ -66,10 +71,6 @@ class Inquiry extends Model
         return $this->belongsTo(PressClip::class, 'resulting_clip_id');
     }
 
-    public function issues(): BelongsToMany
-    {
-        return $this->belongsToMany(Issue::class);
-    }
 
     // Scopes
 
