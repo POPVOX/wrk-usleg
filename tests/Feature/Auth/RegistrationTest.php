@@ -67,3 +67,51 @@ test('new users can register with an approved beta invite', function () {
     expect($request->fresh()->status)->toBe('onboarded');
     expect($request->fresh()->onboarded_user_id)->not->toBeNull();
 });
+
+test('bootstrap super admin signup is available when configured and no users exist', function () {
+    config()->set('auth.bootstrap_super_admin_emails', ['marci@g.popvox.com']);
+
+    $response = $this->get('/register');
+
+    $response
+        ->assertOk()
+        ->assertDontSee('Registration Is Invite-Only')
+        ->assertSee('Create Your First Platform Admin Account');
+});
+
+test('allowed bootstrap email can create the first platform super admin', function () {
+    config()->set('auth.bootstrap_super_admin_emails', ['marci@g.popvox.com']);
+
+    $component = Volt::test('pages.auth.register')
+        ->set('name', 'Marci Harris')
+        ->set('email', 'marci@g.popvox.com')
+        ->set('password', 'password')
+        ->set('password_confirmation', 'password');
+
+    $component->call('register');
+
+    $component->assertRedirect(route('platform.dashboard', absolute: false));
+
+    $user = User::where('email', 'marci@g.popvox.com')->first();
+
+    expect($user)->not->toBeNull();
+    expect($user->is_super_admin)->toBeTrue();
+    expect($user->is_admin)->toBeTrue();
+    expect($user->access_level)->toBe('admin');
+    $this->assertAuthenticatedAs($user);
+});
+
+test('non-allowlisted email cannot bootstrap the first platform admin account', function () {
+    config()->set('auth.bootstrap_super_admin_emails', ['marci@g.popvox.com']);
+
+    $component = Volt::test('pages.auth.register')
+        ->set('name', 'Test User')
+        ->set('email', 'test@example.com')
+        ->set('password', 'password')
+        ->set('password_confirmation', 'password');
+
+    $component->call('register')
+        ->assertHasErrors(['email']);
+
+    expect(User::count())->toBe(0);
+});

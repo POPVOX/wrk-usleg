@@ -112,4 +112,20 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Bootstrap Super Admin Emails
+    |--------------------------------------------------------------------------
+    |
+    | During initial setup, when no users exist yet, these email addresses
+    | may self-register and will be granted platform super-admin access.
+    | Once the first user exists, this bootstrap path closes automatically.
+    |
+    */
+
+    'bootstrap_super_admin_emails' => array_values(array_filter(array_map(
+        static fn (string $email): string => strtolower(trim($email)),
+        explode(',', (string) env('AUTH_BOOTSTRAP_SUPER_ADMIN_EMAILS', ''))
+    ))),
+
 ];

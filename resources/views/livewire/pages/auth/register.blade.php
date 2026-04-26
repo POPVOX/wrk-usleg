@@ -19,6 +19,8 @@ new #[Layout('layouts.guest')] class extends Component
     public string $invite = '';
     public bool $inviteAccessGranted = false;
     public string $inviteStatusMessage = '';
+    public bool $bootstrapRegistrationAvailable = false;
+    public string $bootstrapStatusMessage = '';
 
     public function mount(): void
     {
@@ -31,14 +33,20 @@ new #[Layout('layouts.guest')] class extends Component
         $this->syncInviteState();
     }
 
+    public function updatedEmail(): void
+    {
+        $this->syncInviteState();
+    }
+
     /**
      * Handle an incoming registration request.
      */
     public function register(): void
     {
         $betaRequest = $this->resolveInviteRequest();
+        $bootstrapRegistrationAvailable = $this->bootstrapRegistrationIsAvailable();
 
-        if (!$betaRequest || !$this->inviteAccessGranted) {
+        if ((!$betaRequest || !$this->inviteAccessGranted) && !$bootstrapRegistrationAvailable) {
             throw ValidationException::withMessages([
                 'invite' => $this->inviteStatusMessage ?: 'Registration is invite-only during beta.',
             ]);
@@ -50,59 +58,92 @@ new #[Layout('layouts.guest')] class extends Component
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $validated['email'] = strtolower($betaRequest->email);
+        $validated['email'] = strtolower($validated['email']);
+
+        if ($betaRequest && $this->inviteAccessGranted) {
+            $validated['email'] = strtolower($betaRequest->email);
+        } elseif ($bootstrapRegistrationAvailable) {
+            if (!$this->emailCanBootstrap($validated['email'])) {
+                throw ValidationException::withMessages([
+                    'email' => 'This email address is not authorized to bootstrap the platform.',
+                ]);
+            }
+        }
 
         if (User::where('email', $validated['email'])->exists()) {
             throw ValidationException::withMessages([
-                'email' => 'An account already exists for this approved beta invite. Try signing in instead.',
+                'email' => 'An account already exists for this email. Try signing in instead.',
             ]);
         }
 
         $validated['password'] = Hash::make($validated['password']);
+        $validated['is_admin'] = false;
+        $validated['is_super_admin'] = false;
+        $validated['access_level'] = 'all';
+
+        if ($bootstrapRegistrationAvailable) {
+            $validated['is_admin'] = true;
+            $validated['is_super_admin'] = true;
+            $validated['access_level'] = 'admin';
+        }
 
         event(new Registered($user = User::create($validated)));
 
-        $betaRequest->update([
-            'status' => 'onboarded',
-            'onboarded_at' => now(),
-            'onboarded_user_id' => $user->id,
-        ]);
+        if ($betaRequest && $this->inviteAccessGranted) {
+            $betaRequest->update([
+                'status' => 'onboarded',
+                'onboarded_at' => now(),
+                'onboarded_user_id' => $user->id,
+            ]);
+        }
 
         Auth::login($user);
 
-        $this->redirect(route('dashboard', absolute: false), navigate: true);
+        $this->redirect(
+            route($bootstrapRegistrationAvailable ? 'platform.dashboard' : 'dashboard', absolute: false),
+            navigate: true
+        );
     }
 
     protected function syncInviteState(): void
     {
+        $this->inviteAccessGranted = false;
+        $this->bootstrapRegistrationAvailable = false;
+        $this->bootstrapStatusMessage = '';
+
         $request = $this->resolveInviteRequest();
 
-        $this->inviteAccessGranted = false;
         $this->inviteStatusMessage = 'Registration is invite-only during beta. Please use the invite link you received after approval.';
 
-        if (!$request) {
+        if ($request) {
+            if ($request->status === 'onboarded') {
+                $this->inviteStatusMessage = 'This invite link has already been used. Try signing in if you already created your account.';
+                return;
+            }
+
+            if ($request->status !== 'approved') {
+                $this->inviteStatusMessage = 'This invite link is no longer active.';
+                return;
+            }
+
+            if ($request->invite_expires_at && $request->invite_expires_at->isPast()) {
+                $this->inviteStatusMessage = 'This invite link has expired. Please ask us for a fresh invite.';
+                return;
+            }
+
+            $this->inviteAccessGranted = true;
+            $this->inviteStatusMessage = '';
+            $this->name = $this->name ?: $request->full_name;
+            $this->email = $request->email;
             return;
         }
 
-        if ($request->status === 'onboarded') {
-            $this->inviteStatusMessage = 'This invite link has already been used. Try signing in if you already created your account.';
+        if (!$this->bootstrapRegistrationIsAvailable()) {
             return;
         }
 
-        if ($request->status !== 'approved') {
-            $this->inviteStatusMessage = 'This invite link is no longer active.';
-            return;
-        }
-
-        if ($request->invite_expires_at && $request->invite_expires_at->isPast()) {
-            $this->inviteStatusMessage = 'This invite link has expired. Please ask us for a fresh invite.';
-            return;
-        }
-
-        $this->inviteAccessGranted = true;
-        $this->inviteStatusMessage = '';
-        $this->name = $this->name ?: $request->full_name;
-        $this->email = $request->email;
+        $this->bootstrapRegistrationAvailable = true;
+        $this->bootstrapStatusMessage = 'Platform bootstrap mode is active. Only approved owner emails can create the first admin account.';
     }
 
     protected function resolveInviteRequest(): ?BetaRequest
@@ -115,10 +156,25 @@ new #[Layout('layouts.guest')] class extends Component
 
         return BetaRequest::where('invite_token', $token)->first();
     }
+
+    protected function bootstrapRegistrationIsAvailable(): bool
+    {
+        return !User::query()->exists() && count($this->bootstrapEmails()) > 0;
+    }
+
+    protected function bootstrapEmails(): array
+    {
+        return config('auth.bootstrap_super_admin_emails', []);
+    }
+
+    protected function emailCanBootstrap(string $email): bool
+    {
+        return in_array(strtolower(trim($email)), $this->bootstrapEmails(), true);
+    }
 }; ?>
 
 <div>
-    @if(!$inviteAccessGranted)
+    @if(!$inviteAccessGranted && !$bootstrapRegistrationAvailable)
         <div class="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
             <h2 class="text-xl font-semibold">{{ __('Registration Is Invite-Only') }}</h2>
             <p class="mt-3">{{ $inviteStatusMessage }}</p>
@@ -136,6 +192,13 @@ new #[Layout('layouts.guest')] class extends Component
         </div>
     @else
         <form wire:submit="register">
+            @if($bootstrapRegistrationAvailable)
+                <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 shadow-sm dark:border-blue-900/40 dark:bg-blue-950/30 dark:text-blue-100">
+                    <h2 class="text-lg font-semibold">{{ __('Create Your First Platform Admin Account') }}</h2>
+                    <p class="mt-2">{{ $bootstrapStatusMessage }}</p>
+                </div>
+            @endif
+
             <!-- Name -->
             <div>
                 <x-input-label for="name" :value="__('Name')" />
@@ -145,11 +208,26 @@ new #[Layout('layouts.guest')] class extends Component
 
             <!-- Email Address -->
             <div class="mt-4">
-                <x-input-label for="email" :value="__('Approved Email')" />
-                <x-text-input wire:model="email" id="email" class="block mt-1 w-full bg-gray-100 dark:bg-gray-800" type="email" name="email" required readonly autocomplete="username" />
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    {{ __('This invite is tied to a specific email address.') }}
-                </p>
+                <x-input-label for="email" :value="$inviteAccessGranted ? __('Approved Email') : __('Email')" />
+                <x-text-input
+                    wire:model="email"
+                    id="email"
+                    class="block mt-1 w-full {{ $inviteAccessGranted ? 'bg-gray-100 dark:bg-gray-800' : '' }}"
+                    type="email"
+                    name="email"
+                    required
+                    @readonly($inviteAccessGranted)
+                    autocomplete="username"
+                />
+                @if($inviteAccessGranted)
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        {{ __('This invite is tied to a specific email address.') }}
+                    </p>
+                @elseif($bootstrapRegistrationAvailable)
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                        {{ __('Use an approved owner email to create the first platform admin account.') }}
+                    </p>
+                @endif
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
             </div>
 
