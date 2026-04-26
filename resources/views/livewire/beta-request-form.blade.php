@@ -26,11 +26,17 @@
                     </div>
 
                     {{-- Form --}}
-                    <form wire:submit="submit" class="space-y-5">
+                    <form wire:submit="submit" class="space-y-5" autocomplete="on">
                         {{-- Full Name --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full name</label>
-                            <input type="text" wire:model="full_name" 
+                            <label for="beta-full-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full name</label>
+                            <input
+                                id="beta-full-name"
+                                name="full_name"
+                                type="text"
+                                wire:model="full_name"
+                                autocomplete="name"
+                                autocapitalize="words"
                                 class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Your full name">
                             @error('full_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -38,8 +44,16 @@
 
                         {{-- Email --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Work email</label>
-                            <input type="email" wire:model="email" 
+                            <label for="beta-work-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Work email</label>
+                            <input
+                                id="beta-work-email"
+                                name="email"
+                                type="email"
+                                wire:model="email"
+                                autocomplete="email"
+                                inputmode="email"
+                                autocapitalize="off"
+                                spellcheck="false"
                                 class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="you@office.gov">
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">We'll use this to contact you about access</p>
@@ -64,8 +78,14 @@
                         {{-- Official Name (conditional) --}}
                         @if($role_type === 'staff_member')
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Which elected official do you work for?</label>
-                            <input type="text" wire:model="official_name" 
+                            <label for="beta-official-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Which elected official do you work for?</label>
+                            <input
+                                id="beta-official-name"
+                                name="official_name"
+                                type="text"
+                                wire:model="official_name"
+                                autocomplete="organization"
+                                autocapitalize="words"
                                 class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="e.g., Senator Jane Smith">
                             @error('official_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -88,8 +108,13 @@
                         {{-- Government Level Other (conditional) --}}
                         @if($government_level === 'other')
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Please specify</label>
-                            <input type="text" wire:model="government_level_other" 
+                            <label for="beta-government-level-other" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Please specify</label>
+                            <input
+                                id="beta-government-level-other"
+                                name="government_level_other"
+                                type="text"
+                                wire:model="government_level_other"
+                                autocomplete="organization"
                                 class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="e.g., Tribal government">
                             @error('government_level_other') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -110,8 +135,13 @@
                                 @error('state') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">District <span class="text-gray-400">(optional)</span></label>
-                                <input type="text" wire:model="district" 
+                                <label for="beta-district" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">District <span class="text-gray-400">(optional)</span></label>
+                                <input
+                                    id="beta-district"
+                                    name="district"
+                                    type="text"
+                                    wire:model="district"
+                                    autocomplete="off"
                                     class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="e.g., CA-12">
                             </div>
@@ -132,10 +162,15 @@
 
                         {{-- Additional Info --}}
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <label for="beta-additional-info" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Anything else you'd like us to know? <span class="text-gray-400">(optional)</span>
                             </label>
-                            <textarea wire:model="additional_info" rows="3"
+                            <textarea
+                                id="beta-additional-info"
+                                name="additional_info"
+                                wire:model="additional_info"
+                                rows="3"
+                                autocomplete="off"
                                 class="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                                 placeholder="Tell us about your current challenges or what you're looking for..."
                                 maxlength="500"></textarea>
@@ -176,5 +211,4 @@
     </div>
     @endif
 </div>
-
 
