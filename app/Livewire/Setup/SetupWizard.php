@@ -88,12 +88,23 @@ class SetupWizard extends Component
 
     public function mount()
     {
-        // Pre-fill with any existing config
-        $this->first_name = explode(' ', config('office.member_name', ''))[0] ?? '';
-        $this->last_name = explode(' ', config('office.member_name', ''))[1] ?? '';
-        $this->state = config('office.member_state', '');
-        $this->district_number = config('office.member_district', '');
-        $this->party = config('office.member_party', '');
+        // Always start the setup wizard with a blank manual state.
+        // Existing office config is still used elsewhere in the app, but
+        // setup should not silently preload stale member information.
+        $this->resetStepOneFields();
+    }
+
+    protected function resetStepOneFields(): void
+    {
+        $this->first_name = '';
+        $this->last_name = '';
+        $this->party = '';
+        $this->state = '';
+        $this->district_number = '';
+        $this->search_query = '';
+        $this->search_results = [];
+        $this->verified_member = null;
+        $this->district_geography = null;
     }
 
     /**
