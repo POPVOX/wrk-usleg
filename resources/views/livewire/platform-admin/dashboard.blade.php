@@ -60,6 +60,7 @@
                                 @switch($request->status)
                                     @case('pending') bg-amber-500/20 text-amber-400 @break
                                     @case('approved') bg-green-500/20 text-green-400 @break
+                                    @case('onboarded') bg-blue-500/20 text-blue-400 @break
                                     @case('declined') bg-red-500/20 text-red-400 @break
                                     @default bg-gray-500/20 text-gray-400
                                 @endswitch
@@ -129,4 +130,3 @@
         </div>
     </div>
 </div>
-

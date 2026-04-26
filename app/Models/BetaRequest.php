@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 
 class BetaRequest extends Model
@@ -22,7 +23,25 @@ class BetaRequest extends Model
         'utm_source',
         'utm_medium',
         'utm_campaign',
+        'invite_token',
+        'invite_expires_at',
+        'approved_at',
+        'approved_by',
+        'declined_at',
+        'declined_by',
+        'onboarded_at',
+        'onboarded_user_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'invite_expires_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'declined_at' => 'datetime',
+            'onboarded_at' => 'datetime',
+        ];
+    }
 
     public const ROLE_TYPES = [
         'elected_official' => 'Elected official',
@@ -51,6 +70,7 @@ class BetaRequest extends Model
 
     public const STATUSES = [
         'pending' => 'Pending',
+        'approved' => 'Approved',
         'contacted' => 'Contacted',
         'onboarded' => 'Onboarded',
         'declined' => 'Declined',
@@ -153,6 +173,33 @@ class BetaRequest extends Model
     {
         return $this->additional_info;
     }
-}
 
+    public function approvedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function declinedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'declined_by');
+    }
+
+    public function onboardedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'onboarded_user_id');
+    }
+
+    public function inviteIsActive(): bool
+    {
+        if ($this->status !== 'approved' || !$this->invite_token) {
+            return false;
+        }
+
+        if ($this->invite_expires_at && $this->invite_expires_at->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+}
 

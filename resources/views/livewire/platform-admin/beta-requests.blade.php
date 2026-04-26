@@ -5,8 +5,35 @@
         <p class="text-gray-400">Manage incoming access requests</p>
     </div>
 
+    @if($generatedInviteUrl)
+        <div class="mb-6 rounded-xl border border-indigo-700 bg-indigo-950/40 p-4">
+            <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <p class="text-sm font-medium text-indigo-300">Invite link ready</p>
+                    <p class="text-sm text-indigo-100">Share this with the requester to let them create their account.</p>
+                </div>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <input
+                        id="beta-invite-link"
+                        type="text"
+                        readonly
+                        value="{{ $generatedInviteUrl }}"
+                        class="min-w-[20rem] rounded-lg border border-indigo-700 bg-gray-900 px-3 py-2 text-sm text-white"
+                    >
+                    <button
+                        type="button"
+                        onclick="navigator.clipboard.writeText(document.getElementById('beta-invite-link').value)"
+                        class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+                    >
+                        Copy link
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Stats --}}
-    <div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-5">
         <div class="bg-amber-900/30 rounded-xl p-4 border border-amber-700">
             <p class="text-sm text-amber-400">Pending</p>
             <p class="text-2xl font-bold text-amber-300">{{ $stats['pending'] }}</p>
@@ -14,6 +41,10 @@
         <div class="bg-green-900/30 rounded-xl p-4 border border-green-700">
             <p class="text-sm text-green-400">Approved</p>
             <p class="text-2xl font-bold text-green-300">{{ $stats['approved'] }}</p>
+        </div>
+        <div class="bg-blue-900/30 rounded-xl p-4 border border-blue-700">
+            <p class="text-sm text-blue-400">Onboarded</p>
+            <p class="text-2xl font-bold text-blue-300">{{ $stats['onboarded'] }}</p>
         </div>
         <div class="bg-red-900/30 rounded-xl p-4 border border-red-700">
             <p class="text-sm text-red-400">Declined</p>
@@ -41,6 +72,7 @@
                     <option value="">All Statuses</option>
                     <option value="pending">Pending</option>
                     <option value="approved">Approved</option>
+                    <option value="onboarded">Onboarded</option>
                     <option value="declined">Declined</option>
                 </select>
             </div>
@@ -67,6 +99,7 @@
                                 @switch($request->status)
                                     @case('pending') bg-amber-500/20 text-amber-400 @break
                                     @case('approved') bg-green-500/20 text-green-400 @break
+                                    @case('onboarded') bg-blue-500/20 text-blue-400 @break
                                     @case('declined') bg-red-500/20 text-red-400 @break
                                     @default bg-gray-500/20 text-gray-400
                                 @endswitch
@@ -86,7 +119,7 @@
                     </div>
                     <div>
                         <span class="text-gray-500">Level:</span>
-                        <p class="text-gray-200">{{ ucfirst($request->level) }}</p>
+                        <p class="text-gray-200">{{ $request->government_level_label }}</p>
                     </div>
                     <div>
                         <span class="text-gray-500">Email:</span>
@@ -94,7 +127,7 @@
                     </div>
                     <div>
                         <span class="text-gray-500">State:</span>
-                        <p class="text-gray-200">{{ $request->state ?? 'N/A' }}</p>
+                        <p class="text-gray-200">{{ $request->state_label ?: 'N/A' }}</p>
                     </div>
                 </div>
 
@@ -115,16 +148,43 @@
                     </div>
                 @endif
 
+                @if($request->status === 'approved' && $request->invite_expires_at)
+                    <div class="mb-4 rounded-lg border border-green-900 bg-green-950/30 px-3 py-2 text-sm text-green-200">
+                        Invite active until {{ $request->invite_expires_at->format('M j, Y g:i A') }}
+                    </div>
+                @endif
+
+                @if($request->status === 'onboarded')
+                    <div class="mb-4 rounded-lg border border-blue-900 bg-blue-950/30 px-3 py-2 text-sm text-blue-200">
+                        Onboarded
+                        @if($request->onboarded_at)
+                            on {{ $request->onboarded_at->format('M j, Y') }}
+                        @endif
+                        @if($request->onboardedUser)
+                            as {{ $request->onboardedUser->email }}
+                        @endif
+                    </div>
+                @endif
+
                 @if($request->status === 'pending')
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors">
-                            Approve
+                        <button wire:click="approve({{ $request->id }})" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors">
+                            Approve & Generate Invite
                         </button>
-                        <button class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg transition-colors">
+                        <button wire:click="decline({{ $request->id }})" class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg transition-colors">
                             Decline
                         </button>
-                        <button class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors">
-                            View Details
+                    </div>
+                @elseif($request->status === 'approved')
+                    <div class="flex flex-wrap gap-2">
+                        <button wire:click="showInvite({{ $request->id }})" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors">
+                            Show Invite Link
+                        </button>
+                        <button wire:click="regenerateInvite({{ $request->id }})" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors">
+                            Regenerate Link
+                        </button>
+                        <button wire:click="decline({{ $request->id }})" class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg transition-colors">
+                            Decline
                         </button>
                     </div>
                 @endif
@@ -144,4 +204,3 @@
         {{ $requests->links() }}
     </div>
 </div>
-
