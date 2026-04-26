@@ -10,6 +10,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        // MySQL can leave this table behind if a foreign-key add fails mid-migration.
+        Schema::dropIfExists('member_document_embeddings');
+
         Schema::create('member_document_embeddings', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('member_document_id');
