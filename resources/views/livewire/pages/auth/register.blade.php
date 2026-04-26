@@ -209,16 +209,28 @@ new #[Layout('layouts.guest')] class extends Component
             <!-- Email Address -->
             <div class="mt-4">
                 <x-input-label for="email" :value="$inviteAccessGranted ? __('Approved Email') : __('Email')" />
-                <x-text-input
-                    wire:model="email"
-                    id="email"
-                    class="block mt-1 w-full {{ $inviteAccessGranted ? 'bg-gray-100 dark:bg-gray-800' : '' }}"
-                    type="email"
-                    name="email"
-                    required
-                    @readonly($inviteAccessGranted)
-                    autocomplete="username"
-                />
+                @if($inviteAccessGranted)
+                    <x-text-input
+                        wire:model="email"
+                        id="email"
+                        class="block mt-1 w-full bg-gray-100 dark:bg-gray-800"
+                        type="email"
+                        name="email"
+                        required
+                        readonly
+                        autocomplete="username"
+                    />
+                @else
+                    <x-text-input
+                        wire:model="email"
+                        id="email"
+                        class="block mt-1 w-full"
+                        type="email"
+                        name="email"
+                        required
+                        autocomplete="username"
+                    />
+                @endif
                 @if($inviteAccessGranted)
                     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                         {{ __('This invite is tied to a specific email address.') }}

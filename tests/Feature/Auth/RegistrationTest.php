@@ -76,7 +76,8 @@ test('bootstrap super admin signup is available when configured and no users exi
     $response
         ->assertOk()
         ->assertDontSee('Registration Is Invite-Only')
-        ->assertSee('Create Your First Platform Admin Account');
+        ->assertSee('Create Your First Platform Admin Account')
+        ->assertSee('name="email"', false);
 });
 
 test('allowed bootstrap email can create the first platform super admin', function () {
