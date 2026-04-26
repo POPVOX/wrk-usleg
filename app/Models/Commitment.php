@@ -84,6 +84,11 @@ class Commitment extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    public function assignedTo(): BelongsTo
+    {
+        return $this->assignee();
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -117,5 +122,10 @@ class Commitment extends Model
             return $this->issue->name;
         }
         return 'Unknown';
+    }
+
+    public function getCommitmentAttribute(): string
+    {
+        return $this->description;
     }
 }
