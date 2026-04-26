@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('member_document_embeddings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('member_document_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('member_document_id');
             $table->text('chunk_text');
             $table->integer('chunk_index');
             $table->json('embedding')->nullable(); // Vector embedding for semantic search
