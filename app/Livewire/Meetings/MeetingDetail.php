@@ -19,8 +19,8 @@ class MeetingDetail extends Component
 {
     public Meeting $meeting;
 
-    // Editing mode - default to true for inline editing
-    public bool $editing = true;
+    // Start in read mode so the detail screen is easier to scan on mobile.
+    public bool $editing = false;
     public string $title = '';
     public string $meeting_date = '';
     public string $prep_notes = '';  // Before meeting prep

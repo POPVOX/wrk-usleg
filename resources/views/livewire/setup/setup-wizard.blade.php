@@ -1,14 +1,14 @@
-<div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-    <div class="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div class="mx-auto max-w-4xl px-4 py-6 sm:py-10">
         {{-- Header --}}
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">Member Hub Setup</h1>
-            <p class="text-gray-600 dark:text-gray-400">Configure your office in just a few steps</p>
+        <div class="mb-6 text-center sm:mb-8">
+            <h1 class="mb-2 text-2xl font-bold text-indigo-600 dark:text-indigo-400 sm:text-3xl">Member Hub Setup</h1>
+            <p class="mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-400 sm:text-base">Configure your office in a few short steps. The flow is optimized for quick mobile entry and can be updated later.</p>
         </div>
 
         {{-- Progress Bar --}}
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-2">
+        <div class="mb-6 overflow-x-auto pb-2 sm:mb-8">
+            <div class="mb-2 flex min-w-[36rem] items-center justify-between sm:min-w-0">
                 @for($i = 1; $i <= $totalSteps; $i++)
                     <div class="flex flex-col items-center {{ $i <= $currentStep ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-400 dark:text-gray-500' }}">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white
@@ -35,21 +35,21 @@
         {{-- Card --}}
         <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
             {{-- Card Header --}}
-            <div class="px-8 py-6 bg-gray-50 dark:bg-zinc-700/50 border-b border-gray-200 dark:border-zinc-700">
+            <div class="border-b border-gray-200 bg-gray-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-700/50 sm:px-8 sm:py-6">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                     Step {{ $currentStep }} of {{ $totalSteps }}: {{ $stepTitle }}
                 </h2>
             </div>
 
             {{-- Card Body --}}
-            <div class="p-8">
+            <div class="p-4 sm:p-8">
                 {{-- Step 1: Basic Information --}}
                 @if($currentStep === 1)
                     <div class="space-y-6">
                         {{-- Level --}}
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Level of Office</label>
-                            <div class="grid grid-cols-3 gap-3">
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                 @foreach(['federal' => 'Federal', 'state' => 'State', 'local' => 'Local'] as $value => $label)
                                     <label class="relative flex items-center justify-center p-4 cursor-pointer border-2 rounded-xl transition-colors
                                         {{ $level === $value ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-zinc-600 hover:border-indigo-300' }}">
@@ -146,7 +146,7 @@
                         @endif
 
                         {{-- Name --}}
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name *</label>
                                 <input type="text" wire:model="first_name" class="w-full rounded-lg border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white">
@@ -160,7 +160,7 @@
                         </div>
 
                         {{-- Title & Party --}}
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
                                 <select wire:model="title" class="w-full rounded-lg border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white">
@@ -184,7 +184,7 @@
                         </div>
 
                         {{-- State & District --}}
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">State *</label>
                                 <select wire:model="state" class="w-full rounded-lg border-gray-300 dark:border-zinc-600 dark:bg-zinc-700 dark:text-white">
@@ -219,7 +219,7 @@
                             {{-- Official Info (Federal) --}}
                             <div class="bg-gray-50 dark:bg-zinc-700/50 rounded-xl p-6">
                                 <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Official Information</h3>
-                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                                     <div>
                                         <span class="text-gray-500 dark:text-gray-400">Name:</span>
                                         <span class="ml-2 text-gray-900 dark:text-white">{{ $verified_member['full_name'] ?? $first_name.' '.$last_name }}</span>
@@ -256,7 +256,7 @@
                             {{-- State/Local: Show summary of entered info --}}
                             <div class="bg-gray-50 dark:bg-zinc-700/50 rounded-xl p-6">
                                 <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Confirm Information</h3>
-                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                                     <div>
                                         <span class="text-gray-500 dark:text-gray-400">Name:</span>
                                         <span class="ml-2 text-gray-900 dark:text-white">{{ $title }} {{ $first_name }} {{ $last_name }}</span>
@@ -287,7 +287,7 @@
                         @if($level === 'federal' && $district_geography && !empty($district_geography['cities']))
                             <div class="bg-gray-50 dark:bg-zinc-700/50 rounded-xl p-6">
                                 <h3 class="font-semibold text-gray-900 dark:text-white mb-4">District Geography ({{ $state }}-{{ $district_number }})</h3>
-                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                                     <div>
                                         <span class="text-gray-500 dark:text-gray-400">Counties:</span>
                                         <span class="ml-2 text-gray-900 dark:text-white">{{ implode(', ', $district_geography['counties'] ?? []) }}</span>
@@ -356,7 +356,7 @@
                             @if(!empty($categorySources))
                                 <div>
                                     <h3 class="font-semibold text-gray-900 dark:text-white mb-3">{{ $label }}</h3>
-                                    <div class="grid grid-cols-2 gap-2">
+                                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                         @foreach($suggested_sources as $index => $source)
                                             @if(($source['category'] ?? '') === $category)
                                                 <label class="flex items-center p-3 border rounded-lg cursor-pointer transition-colors
@@ -379,7 +379,7 @@
                         {{-- Social Media --}}
                         <div>
                             <h3 class="font-semibold text-gray-900 dark:text-white mb-3">Social Media (Optional)</h3>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Twitter/X</label>
                                     <div class="flex">
@@ -555,7 +555,7 @@
                                     We can monitor these accounts for public statements and announcements.
                                 </p>
 
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <div>
                                         <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Twitter/X</label>
                                         <div class="flex">
@@ -628,7 +628,7 @@
                         <div class="bg-gray-50 dark:bg-zinc-700/50 rounded-xl p-6 space-y-4">
                             <h4 class="font-semibold text-gray-900 dark:text-white">Configuration Summary</h4>
                             
-                            <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                                 <div>
                                     <span class="text-gray-500 dark:text-gray-400">Member:</span>
                                     <span class="ml-2 text-gray-900 dark:text-white">{{ $title }} {{ $first_name }} {{ $last_name }}</span>
@@ -749,11 +749,11 @@
             </div>
 
             {{-- Card Footer --}}
-            <div class="px-8 py-6 bg-gray-50 dark:bg-zinc-700/50 border-t border-gray-200 dark:border-zinc-700 flex justify-between">
+            <div class="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-4 py-4 dark:border-zinc-700 dark:bg-zinc-700/50 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-6">
                 @if($currentStep > 1)
                     <button 
                         wire:click="previousStep"
-                        class="px-6 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                        class="w-full rounded-lg border border-gray-200 px-6 py-3 text-center text-gray-700 transition-colors hover:text-gray-900 dark:border-zinc-600 dark:text-gray-300 dark:hover:text-white sm:w-auto sm:border-0 sm:px-0 sm:py-2"
                     >
                         ← Back
                     </button>
@@ -765,7 +765,7 @@
                     <button 
                         wire:click="nextStep"
                         wire:loading.attr="disabled"
-                        class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                        class="w-full rounded-lg bg-indigo-600 px-6 py-3 text-white transition-colors hover:bg-indigo-700 disabled:opacity-50 sm:w-auto sm:py-2"
                     >
                         <span wire:loading.remove wire:target="nextStep">Next →</span>
                         <span wire:loading wire:target="nextStep">Processing...</span>
@@ -773,7 +773,7 @@
                 @else
                     <button 
                         wire:click="completeSetup"
-                        class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                        class="w-full rounded-lg bg-green-600 px-8 py-3 font-semibold text-white transition-colors hover:bg-green-700 sm:w-auto"
                     >
                         🚀 Launch Member Hub
                     </button>

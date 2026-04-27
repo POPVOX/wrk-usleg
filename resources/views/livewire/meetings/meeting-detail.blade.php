@@ -1,19 +1,44 @@
 <div>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Meeting: {{ $meeting->meeting_date->format('F j, Y') }}
-        </h2>
+        @php
+            $headerOrg = $meeting->organizations->first();
+            $headerStatusColors = [
+                'scheduled' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+                'completed' => 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
+                'cancelled' => 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
+                'needs_notes' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+            ];
+        @endphp
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">Meeting</p>
+                <h2 class="truncate text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                    {{ $meeting->title ?: $meeting->meeting_date->format('F j, Y') }}
+                </h2>
+                <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                    <span>{{ $meeting->meeting_date->format('l, F j, Y') }}</span>
+                    @if($headerOrg)
+                        <span class="text-gray-300 dark:text-gray-600">•</span>
+                        <span class="truncate">{{ $headerOrg->name }}</span>
+                    @endif
+                </div>
+            </div>
+            <span class="inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-medium {{ $headerStatusColors[$meeting->status] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }}">
+                {{ ucfirst(str_replace('_', ' ', $meeting->status)) }}
+            </span>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-4 sm:py-8">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
             <!-- Action Bar -->
-            <div class="mb-6 flex items-center justify-between">
-                <div class="flex items-center gap-4">
+            <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-5">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                     <!-- Back Button -->
                     <a href="{{ route('meetings.index') }}"
-                        class="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition">
+                        class="inline-flex items-center gap-1 text-sm text-gray-500 transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -21,24 +46,26 @@
                         Back
                     </a>
 
-                    <div class="w-px h-6 bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="hidden h-6 w-px bg-gray-200 dark:bg-gray-700 sm:block"></div>
 
                     <!-- Status Dropdown -->
-                    <label class="text-sm text-gray-600 dark:text-gray-400">Status:</label>
-                    <select wire:change="updateStatus($event.target.value)"
-                        class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-sm">
-                        @foreach(\App\Models\Meeting::STATUSES as $s)
-                            <option value="{{ $s }}" {{ $meeting->status === $s ? 'selected' : '' }}>
-                                {{ ucfirst(str_replace('_', ' ', $s)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                        <div class="flex items-center gap-3">
+                            <label class="text-sm text-gray-600 dark:text-gray-400">Status</label>
+                            <select wire:change="updateStatus($event.target.value)"
+                                class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                                @foreach(\App\Models\Meeting::STATUSES as $s)
+                                    <option value="{{ $s }}" {{ $meeting->status === $s ? 'selected' : '' }}>
+                                        {{ ucfirst(str_replace('_', ' ', $s)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
 
-                <div class="flex items-center gap-2">
+                    <div class="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:justify-end">
                     {{-- AI Prep Button - always visible --}}
                     <button wire:click="openPrepModal"
-                        class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+                        class="inline-flex w-full items-center justify-center rounded-md bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white hover:from-purple-700 hover:to-indigo-700 sm:w-auto">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -48,19 +75,19 @@
 
                     @if($editing)
                         <button wire:click="save"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                            class="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 sm:w-auto">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
                             Save Changes
                         </button>
                         <button wire:click="cancelEditing"
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                            class="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:w-auto">
                             Cancel
                         </button>
                     @else
                         <button wire:click="startEditing"
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                            class="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:w-auto">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -69,7 +96,7 @@
                         </button>
 
                         <button wire:click="deleteMeeting" wire:confirm="Are you sure you want to delete this meeting?"
-                            class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-600 dark:hover:bg-gray-700">
+                            class="inline-flex w-full items-center justify-center rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-600 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-gray-700 sm:w-auto">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -78,6 +105,7 @@
                         </button>
                     @endif
                 </div>
+            </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -984,6 +1012,25 @@
                         @endif
                     </div>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    @if($editing)
+        <div class="fixed inset-x-0 bottom-16 z-30 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-2xl backdrop-blur dark:border-gray-700 dark:bg-gray-800/95 sm:hidden">
+            <div class="mx-auto flex max-w-7xl gap-3">
+                <button
+                    wire:click="cancelEditing"
+                    class="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                >
+                    Cancel
+                </button>
+                <button
+                    wire:click="save"
+                    class="flex-1 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-indigo-500/25"
+                >
+                    Save Changes
+                </button>
             </div>
         </div>
     @endif

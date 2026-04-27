@@ -2,7 +2,7 @@
     {{-- Floating Feedback Button --}}
     <button
         wire:click="open"
-        class="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all duration-200 group"
+        class="fixed bottom-24 right-4 z-40 flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3 font-medium text-white shadow-lg transition-all duration-200 group hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl sm:bottom-6 sm:right-6"
         title="Send Feedback"
     >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,5 +320,4 @@
         </script>
     @endif
 </div>
-
 
