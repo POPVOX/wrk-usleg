@@ -8,6 +8,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MemberProfile extends Model
 {
     protected $fillable = [
+        'member_name',
+        'member_first_name',
+        'member_last_name',
+        'member_title',
+        'member_party',
+        'member_state',
+        'member_district',
+        'member_bioguide_id',
+        'member_photo_url',
+        'government_level',
+        'chamber',
+        'first_elected',
+        'official_website',
+        'social_media',
+        'dc_office',
+        'district_offices',
+        'district_cities',
+        'district_counties',
+        'news_sources',
+        'legislative_activity',
+        'setup_completed_at',
         'top_policy_areas',
         'signature_issues',
         'emerging_interests',
@@ -50,6 +71,14 @@ class MemberProfile extends Model
     ];
 
     protected $casts = [
+        'social_media' => 'array',
+        'dc_office' => 'array',
+        'district_offices' => 'array',
+        'district_cities' => 'array',
+        'district_counties' => 'array',
+        'news_sources' => 'array',
+        'legislative_activity' => 'array',
+        'setup_completed_at' => 'datetime',
         'top_policy_areas' => 'array',
         'signature_issues' => 'array',
         'emerging_interests' => 'array',
@@ -88,10 +117,52 @@ class MemberProfile extends Model
     public static function current(): self
     {
         return static::firstOrCreate([], [
+            'member_name' => '',
             'top_policy_areas' => [],
             'signature_issues' => [],
             'use_in_prompts' => true,
         ]);
+    }
+
+    public function hasConfiguredMember(): bool
+    {
+        return trim((string) $this->member_name) !== '';
+    }
+
+    public function toOfficeConfigOverrides(): array
+    {
+        if (!$this->hasConfiguredMember()) {
+            return [];
+        }
+
+        return array_filter(
+            [
+                'member_name' => $this->member_name,
+                'member_first_name' => $this->member_first_name ?: '',
+                'member_last_name' => $this->member_last_name ?: '',
+                'member_title' => $this->member_title ?: 'Representative',
+                'member_party' => $this->member_party ?: '',
+                'member_state' => $this->member_state ?: '',
+                'member_district' => $this->member_district ?: '',
+                'member_bioguide_id' => $this->member_bioguide_id ?: '',
+                'member_photo_url' => $this->member_photo_url,
+                'government_level' => $this->government_level ?: 'federal',
+                'chamber' => $this->chamber ?: 'House',
+                'first_elected' => $this->first_elected,
+                'official_website' => $this->official_website ?: '',
+                'social_media' => $this->social_media ?: [],
+                'dc_office' => $this->dc_office ?: [],
+                'district_offices' => $this->district_offices ?: [],
+                'district_cities' => $this->district_cities ?: [],
+                'district_counties' => $this->district_counties ?: [],
+                'news_sources' => $this->news_sources ?: [],
+                'legislative_activity' => $this->legislative_activity ?: [],
+                'setup_completed_at' => optional($this->setup_completed_at)?->toDateTimeString(),
+                'setup_completed' => $this->setup_completed_at !== null,
+            ],
+            static fn ($value, string $key) => !($value === null && $key !== 'setup_completed'),
+            ARRAY_FILTER_USE_BOTH,
+        );
     }
 
     /**
@@ -211,4 +282,3 @@ class MemberProfile extends Model
             ->toArray();
     }
 }
-

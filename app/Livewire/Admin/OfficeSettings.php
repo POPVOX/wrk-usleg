@@ -24,10 +24,10 @@ class OfficeSettings extends Component
     public function mount(): void
     {
         $this->officeName = config('app.name', 'Congressional Office');
-        $this->memberName = config('office.member.name', '');
-        $this->memberParty = config('office.member.party', 'D');
-        $this->memberState = config('office.member.state', '');
-        $this->memberDistrict = config('office.member.district', '');
+        $this->memberName = config('office.member_name', '');
+        $this->memberParty = config('office.member_party', 'D');
+        $this->memberState = config('office.member_state', '');
+        $this->memberDistrict = config('office.member_district', '');
         $this->timezone = config('app.timezone', 'America/New_York');
     }
 
@@ -62,6 +62,5 @@ class OfficeSettings extends Component
         ]);
     }
 }
-
 
 

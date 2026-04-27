@@ -59,7 +59,7 @@ class Billing extends Component
 
     public function getOfficeNameProperty(): string
     {
-        return config('office.member.name', 'Your Office');
+        return config('office.member_name', 'Your Office');
     }
 
     public function getIsBetaProperty(): bool

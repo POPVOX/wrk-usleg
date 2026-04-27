@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Setup;
 
+use App\Models\MemberProfile;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Services\BioguideApiService;
@@ -9,7 +10,6 @@ use App\Services\NewsSourceDetector;
 use App\Services\CongressApiService;
 use App\Services\MemberKnowledgeService;
 use App\Models\MemberDocument;
-use Illuminate\Support\Facades\File;
 
 /**
  * Member Hub Setup Wizard
@@ -88,14 +88,20 @@ class SetupWizard extends Component
 
     public function mount()
     {
-        // Always start the setup wizard with a blank manual state.
-        // Existing office config is still used elsewhere in the app, but
-        // setup should not silently preload stale member information.
+        $profile = MemberProfile::query()->first();
+
+        if ($profile && $profile->hasConfiguredMember()) {
+            $this->loadExistingConfiguration($profile);
+            return;
+        }
+
         $this->resetStepOneFields();
     }
 
     protected function resetStepOneFields(): void
     {
+        $this->level = 'federal';
+        $this->title = 'Representative';
         $this->first_name = '';
         $this->last_name = '';
         $this->party = '';
@@ -105,6 +111,35 @@ class SetupWizard extends Component
         $this->search_results = [];
         $this->verified_member = null;
         $this->district_geography = null;
+        $this->dc_address = '';
+        $this->dc_phone = '';
+        $this->official_website = '';
+        $this->district_offices = [];
+        $this->social_media = [
+            'twitter' => '',
+            'facebook' => '',
+            'instagram' => '',
+            'youtube' => '',
+            'linkedin' => '',
+            'bluesky' => '',
+            'tiktok' => '',
+        ];
+    }
+
+    protected function loadExistingConfiguration(MemberProfile $profile): void
+    {
+        $this->level = $profile->government_level ?: 'federal';
+        $this->title = $profile->member_title ?: 'Representative';
+        $this->first_name = $profile->member_first_name ?: '';
+        $this->last_name = $profile->member_last_name ?: '';
+        $this->party = $profile->member_party ?: '';
+        $this->state = $profile->member_state ?: '';
+        $this->district_number = $profile->member_district ?: '';
+        $this->dc_address = $profile->dc_office['address'] ?? '';
+        $this->dc_phone = $profile->dc_office['phone'] ?? '';
+        $this->official_website = $profile->official_website ?: '';
+        $this->district_offices = $profile->district_offices ?: [];
+        $this->social_media = array_merge($this->social_media, $profile->social_media ?? []);
     }
 
     /**
@@ -403,12 +438,12 @@ class SetupWizard extends Component
     }
 
     /**
-     * Save configuration to config file and .env.
+     * Persist member and office identity to the profile singleton.
      */
     protected function saveConfiguration()
     {
         $bioguideId = $this->verified_member['bioguide_id'] ?? '';
-        $fullName = $this->first_name . ' ' . $this->last_name;
+        $fullName = trim($this->first_name . ' ' . $this->last_name);
 
         // Build selected news sources list
         $selectedNewsSources = [];
@@ -418,8 +453,9 @@ class SetupWizard extends Component
             }
         }
 
-        // Create the config array
-        $config = [
+        $profile = MemberProfile::current();
+
+        $profile->update([
             'member_name' => $fullName,
             'member_first_name' => $this->first_name,
             'member_last_name' => $this->last_name,
@@ -450,26 +486,13 @@ class SetupWizard extends Component
             'official_website' => $this->official_website,
             'social_media' => array_filter($this->social_media),
             'news_sources' => $selectedNewsSources,
-            'congress_api' => [
-                'key' => env('CONGRESS_API_KEY'),
-                'base_url' => 'https://api.congress.gov/v3',
-                'rate_limit' => 5000,
-            ],
             'legislative_activity' => [
                 'url' => $this->legislative_url,
                 'type' => $this->legislative_url_type,
                 'last_scraped' => null,
             ],
-            'setup_completed_at' => now()->toDateTimeString(),
-            'setup_version' => '1.0.0',
-        ];
-
-        // Write to config/office.php
-        $configContent = "<?php\n\nreturn " . var_export($config, true) . ";\n";
-        File::put(config_path('office.php'), $configContent);
-
-        // Clear config cache
-        \Artisan::call('config:clear');
+            'setup_completed_at' => now(),
+        ]);
     }
 
     /**

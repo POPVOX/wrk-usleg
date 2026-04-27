@@ -54,5 +54,6 @@ return [
     ],
 
     'setup_completed_at' => env('OFFICE_SETUP_COMPLETED_AT'),
+    'setup_completed' => env('OFFICE_SETUP_COMPLETED_AT') !== null,
     'setup_version' => env('OFFICE_SETUP_VERSION', '1.0.0'),
 ];
