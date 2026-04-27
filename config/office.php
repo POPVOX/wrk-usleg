@@ -1,56 +1,58 @@
 <?php
 
-return array (
-  'member_name' => 'John Clemmons',
-  'member_first_name' => 'John',
-  'member_last_name' => 'Clemmons',
-  'member_title' => 'Representative',
-  'member_party' => 'Democratic',
-  'member_state' => 'TN',
-  'member_district' => '55',
-  'member_bioguide_id' => '',
-  'member_photo_url' => NULL,
-  'government_level' => 'state',
-  'current_congress' => 119,
-  'chamber' => 'House',
-  'first_elected' => NULL,
-  'dc_office' => 
-  array (
-    'name' => 'Washington, DC Office',
-    'address' => '425 Rep. John Lewis Way N. Suite 662 Cordell Hull Bldg. Nashville, TN 37243',
-    'city' => 'Washington',
-    'state' => 'DC',
-    'zip' => '20515',
-    'phone' => '(615) 741-4410',
-    'timezone' => 'America/New_York',
-    'lat' => 38.8899,
-    'lng' => -77.0091,
-  ),
-  'district_offices' => 
-  array (
-  ),
-  'district_cities' => 
-  array (
-  ),
-  'district_counties' => 
-  array (
-  ),
-  'official_website' => 'https://wapp.capitol.tn.gov/apps/legislatorinfo/member.aspx?district=H55',
-  'social_media' => 
-  array (
-    'twitter' => 'https://x.com/jrclemmons',
-    'facebook' => 'https://www.facebook.com/johnrayfortn',
-    'instagram' => 'https://www.instagram.com/jrclemmons/',
-  ),
-  'news_sources' => 
-  array (
-  ),
-  'congress_api' => 
-  array (
-    'key' => 'UjzH91OVuCmFjgyhkcc9AwD3eO60sZb9l30UsUnc',
-    'base_url' => 'https://api.congress.gov/v3',
-    'rate_limit' => 5000,
-  ),
-  'setup_completed_at' => '2025-12-31 18:46:03',
-  'setup_version' => '1.0.0',
-);
+$memberName = trim((string) env('MEMBER_NAME', ''));
+$nameParts = $memberName === '' ? [] : preg_split('/\s+/', $memberName);
+
+return [
+    'member_name' => $memberName,
+    'member_first_name' => env('MEMBER_FIRST_NAME', $nameParts[0] ?? ''),
+    'member_last_name' => env('MEMBER_LAST_NAME', count($nameParts) > 1 ? end($nameParts) : ''),
+    'member_title' => env('MEMBER_TITLE', 'Representative'),
+    'member_party' => env('MEMBER_PARTY', ''),
+    'member_state' => env('MEMBER_STATE', ''),
+    'member_district' => env('MEMBER_DISTRICT', ''),
+    'member_bioguide_id' => env('MEMBER_BIOGUIDE_ID', ''),
+    'member_photo_url' => env('MEMBER_PHOTO_URL'),
+    'government_level' => env('GOVERNMENT_LEVEL', 'federal'),
+    'current_congress' => (int) env('CURRENT_CONGRESS', 119),
+    'chamber' => env('CHAMBER', 'House'),
+    'first_elected' => env('FIRST_ELECTED'),
+
+    'dc_office' => [
+        'name' => env('DC_OFFICE_NAME', 'Washington, DC Office'),
+        'address' => env('DC_OFFICE_ADDRESS', ''),
+        'city' => env('DC_OFFICE_CITY', 'Washington'),
+        'state' => env('DC_OFFICE_STATE', 'DC'),
+        'zip' => env('DC_OFFICE_ZIP', ''),
+        'phone' => env('DC_OFFICE_PHONE', ''),
+        'timezone' => env('DC_OFFICE_TIMEZONE', 'America/New_York'),
+        'lat' => env('DC_OFFICE_LAT'),
+        'lng' => env('DC_OFFICE_LNG'),
+    ],
+
+    'district_offices' => [],
+    'district_cities' => [],
+    'district_counties' => [],
+    'official_website' => env('OFFICIAL_WEBSITE', ''),
+
+    'social_media' => array_filter([
+        'twitter' => env('SOCIAL_TWITTER'),
+        'facebook' => env('SOCIAL_FACEBOOK'),
+        'instagram' => env('SOCIAL_INSTAGRAM'),
+        'youtube' => env('SOCIAL_YOUTUBE'),
+        'linkedin' => env('SOCIAL_LINKEDIN'),
+        'bluesky' => env('SOCIAL_BLUESKY'),
+        'tiktok' => env('SOCIAL_TIKTOK'),
+    ]),
+
+    'news_sources' => [],
+
+    'congress_api' => [
+        'key' => env('CONGRESS_API_KEY'),
+        'base_url' => env('CONGRESS_API_BASE_URL', 'https://api.congress.gov/v3'),
+        'rate_limit' => (int) env('CONGRESS_API_RATE_LIMIT', 5000),
+    ],
+
+    'setup_completed_at' => env('OFFICE_SETUP_COMPLETED_AT'),
+    'setup_version' => env('OFFICE_SETUP_VERSION', '1.0.0'),
+];

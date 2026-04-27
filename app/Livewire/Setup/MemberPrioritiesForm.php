@@ -493,6 +493,23 @@ class MemberPrioritiesForm extends Component
         };
     }
 
+    public function getMemberDisplayLabel(): string
+    {
+        $memberName = trim((string) config('office.member_name', ''));
+
+        if ($memberName !== '') {
+            $memberTitle = trim((string) config('office.member_title', ''));
+
+            return trim($memberTitle . ' ' . $memberName);
+        }
+
+        return match($this->governmentLevel) {
+            'local' => 'this official',
+            'state' => 'this legislator',
+            default => 'this Member',
+        };
+    }
+
     /**
      * Get level-specific placeholder text
      */
@@ -631,7 +648,7 @@ class MemberPrioritiesForm extends Component
             'policyAreaOptions' => $this->policyAreaOptions,
             'philosophyOptions' => $this->philosophyOptions,
             'memberTerm' => $this->getMemberTerm(),
+            'memberDisplayLabel' => $this->getMemberDisplayLabel(),
         ]);
     }
 }
-

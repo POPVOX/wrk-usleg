@@ -11,7 +11,7 @@
                     Member Priorities & Interests
                 @endif
             </h1>
-            <p class="text-gray-600 dark:text-gray-400">Help us understand what matters most to {{ config('office.member_title', 'the Member') }} {{ config('office.member_name', '') }}</p>
+            <p class="text-gray-600 dark:text-gray-400">Help us understand what matters most to {{ $memberDisplayLabel }}</p>
             
             {{-- Level indicator --}}
             <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium
@@ -720,4 +720,3 @@
         </div>
     </div>
 </div>
-
