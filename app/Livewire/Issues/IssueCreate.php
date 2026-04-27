@@ -108,7 +108,7 @@ class IssueCreate extends Component
                 'anthropic-version' => '2023-06-01',
                 'Content-Type' => 'application/json',
             ])->post('https://api.anthropic.com/v1/messages', [
-                        'model' => 'claude-sonnet-4-20250514',
+                        'model' => config('services.anthropic.model'),
                         'max_tokens' => 1500,
                         'system' => $this->getExtractionSystemPrompt(),
                         'messages' => [
@@ -291,6 +291,5 @@ PROMPT;
         ]);
     }
 }
-
 
 

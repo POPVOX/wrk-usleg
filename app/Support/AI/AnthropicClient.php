@@ -12,7 +12,7 @@ class AnthropicClient
     public const DEFAULT_TIMEOUT = 120;
     public const API_URL = 'https://api.anthropic.com/v1/messages';
     public const API_VERSION = '2023-06-01';
-    public const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
+    public const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
 
     public static function request(): PendingRequest
     {

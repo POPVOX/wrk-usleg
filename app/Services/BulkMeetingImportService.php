@@ -21,7 +21,7 @@ class BulkMeetingImportService
                 'anthropic-version' => '2023-06-01',
                 'Content-Type' => 'application/json',
             ])->post('https://api.anthropic.com/v1/messages', [
-                        'model' => 'claude-sonnet-4-20250514',
+                        'model' => config('services.anthropic.model'),
                         'max_tokens' => 4000,
                         'messages' => [
                             [

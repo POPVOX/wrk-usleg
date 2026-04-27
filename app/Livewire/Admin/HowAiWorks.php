@@ -144,9 +144,12 @@ Guidelines:
 
     public function render()
     {
-        return view('livewire.admin.how-ai-works');
+        return view('livewire.admin.how-ai-works', [
+            'anthropicModel' => (string) config('services.anthropic.model'),
+            'openAiChatModel' => (string) config('services.openai.chat_model'),
+            'openAiEmbeddingModel' => (string) config('services.openai.embedding_model'),
+        ]);
     }
 }
-
 
 

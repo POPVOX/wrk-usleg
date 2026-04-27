@@ -67,7 +67,7 @@ PROMPT;
                 'anthropic-version' => '2023-06-01',
                 'Content-Type' => 'application/json',
             ])->post("{$this->baseUrl}/messages", [
-                        'model' => 'claude-sonnet-4-20250514',
+                        'model' => config('services.anthropic.model'),
                         'max_tokens' => 1024,
                         'messages' => [
                             [

@@ -174,7 +174,7 @@ class KnowledgeHub extends Component
                 'anthropic-version' => '2023-06-01',
                 'Content-Type' => 'application/json',
             ])->timeout(30)->post('https://api.anthropic.com/v1/messages', [
-                        'model' => 'claude-sonnet-4-20250514',
+                        'model' => config('services.anthropic.model'),
                         'max_tokens' => 1500,
                         'system' => "You are a helpful assistant for congressional office staff. Answer questions based on the organizational knowledge provided. Be concise but thorough. If the context doesn't contain enough information, say so. Cite specific meetings, issues, or people when relevant.",
                         'messages' => [

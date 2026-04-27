@@ -573,7 +573,7 @@ PROMPT;
                 'anthropic-version' => '2023-06-01',
                 'content-type' => 'application/json',
             ])->post('https://api.anthropic.com/v1/messages', [
-                        'model' => 'claude-sonnet-4-20250514',
+                        'model' => config('services.anthropic.model'),
                         'max_tokens' => 1000,
                         'messages' => [
                             ['role' => 'user', 'content' => $prompt]
@@ -720,7 +720,7 @@ PROMPT;
                 'anthropic-version' => '2023-06-01',
                 'content-type' => 'application/json',
             ])->post('https://api.anthropic.com/v1/messages', [
-                        'model' => 'claude-sonnet-4-20250514',
+                        'model' => config('services.anthropic.model'),
                         'max_tokens' => 1000,
                         'messages' => [
                             ['role' => 'user', 'content' => $prompt]
@@ -1175,7 +1175,7 @@ PROMPT;
                 'anthropic-version' => '2023-06-01',
                 'content-type' => 'application/json',
             ])->post('https://api.anthropic.com/v1/messages', [
-                        'model' => 'claude-sonnet-4-20250514',
+                        'model' => config('services.anthropic.model'),
                         'max_tokens' => 1500,
                         'messages' => [
                             ['role' => 'user', 'content' => $prompt]

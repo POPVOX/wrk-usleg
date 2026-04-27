@@ -361,7 +361,7 @@ class MeetingDetail extends Component
                 'anthropic-version' => '2023-06-01',
                 'Content-Type' => 'application/json',
             ])->timeout(60)->post('https://api.anthropic.com/v1/messages', [
-                        'model' => 'claude-sonnet-4-20250514',
+                        'model' => config('services.anthropic.model'),
                         'max_tokens' => 2000,
                         'system' => "You are an executive assistant helping prepare for a meeting. Analyze the provided material and context to create a comprehensive meeting prep brief. Return a JSON object with the following structure:
 {

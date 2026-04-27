@@ -34,7 +34,7 @@ class OpenAiClient
     public static function chat(array $payload): array
     {
         return self::send('/chat/completions', array_merge([
-            'model' => config('services.openai.chat_model', 'gpt-4o-mini'),
+            'model' => config('services.openai.chat_model', 'gpt-5.4-mini-2026-03-17'),
         ], $payload));
     }
 

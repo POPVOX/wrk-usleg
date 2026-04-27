@@ -104,43 +104,56 @@
 
                 {{-- Section 2: The Model --}}
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">The AI Model</h2>
-                    
-                    <div class="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg p-4 mb-4 border border-orange-100 dark:border-orange-800">
-                        <p class="text-lg font-bold text-gray-900 dark:text-white">Claude 3.5 Sonnet</p>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">by Anthropic</p>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Current AI Stack</h2>
+
+                    <div class="grid gap-4 md:grid-cols-3 mb-6">
+                        <div class="rounded-lg border border-orange-100 bg-gradient-to-r from-orange-50 to-amber-50 p-4 dark:border-orange-800 dark:from-orange-900/20 dark:to-amber-900/20">
+                            <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Anthropic</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white mt-2">{{ $anthropicModel }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Primary reasoning, drafting, and analysis tasks</p>
+                        </div>
+                        <div class="rounded-lg border border-sky-100 bg-gradient-to-r from-sky-50 to-cyan-50 p-4 dark:border-sky-800 dark:from-sky-900/20 dark:to-cyan-900/20">
+                            <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">OpenAI Chat</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white mt-2">{{ $openAiChatModel }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">OpenAI-backed chat and assistant interactions</p>
+                        </div>
+                        <div class="rounded-lg border border-emerald-100 bg-gradient-to-r from-emerald-50 to-green-50 p-4 dark:border-emerald-800 dark:from-emerald-900/20 dark:to-green-900/20">
+                            <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">OpenAI Embeddings</p>
+                            <p class="text-lg font-bold text-gray-900 dark:text-white mt-2">{{ $openAiEmbeddingModel }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Semantic search, retrieval, and document similarity</p>
+                        </div>
                     </div>
-                    
+
                     <p class="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                        We currently use Claude, an AI assistant made by Anthropic, a company focused on AI safety. We chose Claude because:
+                        LegiDash currently uses more than one model depending on the task. Anthropic powers the core reasoning and drafting workflows, while OpenAI powers chat-specific paths and embeddings for search and retrieval.
                     </p>
-                    
+
                     <ul class="space-y-2 mb-6">
                         <li class="flex items-start gap-2 text-gray-600 dark:text-gray-400">
                             <span class="text-gray-400 mt-1">•</span>
-                            Strong performance on writing and analysis tasks
+                            Different models are used for different jobs instead of forcing one provider to do everything
                         </li>
                         <li class="flex items-start gap-2 text-gray-600 dark:text-gray-400">
                             <span class="text-gray-400 mt-1">•</span>
-                            Clear data privacy policies (see below)
+                            Search and retrieval use embeddings rather than full-document keyword matching alone
                         </li>
                         <li class="flex items-start gap-2 text-gray-600 dark:text-gray-400">
                             <span class="text-gray-400 mt-1">•</span>
-                            Designed with safety considerations in mind
+                            Model choices can be updated centrally through environment configuration
                         </li>
                     </ul>
 
                     <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                         <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">📚 Learn More</p>
                         <div class="space-y-2">
-                            <a href="https://www.anthropic.com/news/what-are-large-language-models" target="_blank" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">What is a large language model? →</a>
                             <a href="https://www.anthropic.com/company" target="_blank" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">About Anthropic →</a>
-                            <a href="https://www.anthropic.com/claude" target="_blank" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">Claude's capabilities and limitations →</a>
+                            <a href="https://www.anthropic.com/claude" target="_blank" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">Claude capabilities and limitations →</a>
+                            <a href="https://platform.openai.com/docs/overview" target="_blank" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">OpenAI API overview →</a>
                         </div>
                     </div>
-                    
+
                     <p class="text-gray-500 dark:text-gray-500 text-sm mt-4">
-                        In the future, we plan to offer a choice of AI models so your office can select the option that best fits your needs and preferences.
+                        These model names are pulled from the app's current configuration so this page stays aligned with the live environment.
                     </p>
                 </div>
 
@@ -183,7 +196,7 @@
                             </svg>
                             
                             <div class="bg-orange-50 dark:bg-orange-900/30 rounded-lg px-6 py-3 border border-orange-200 dark:border-orange-700">
-                                <span class="text-gray-900 dark:text-white font-semibold">Anthropic API</span>
+                                <span class="text-gray-900 dark:text-white font-semibold">Anthropic or OpenAI API</span>
                             </div>
                             
                             <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -208,50 +221,44 @@
                     <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">What This Means</h3>
                     
                     <div class="grid md:grid-cols-2 gap-4 mb-6">
-                        <div class="space-y-2">
-                            <div class="flex items-start gap-2 text-green-700 dark:text-green-400">
-                                <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-sm">Your content is sent to Anthropic to generate responses</span>
-                            </div>
-                            <div class="flex items-start gap-2 text-green-700 dark:text-green-400">
-                                <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
+                            <div class="space-y-2">
+                                <div class="flex items-start gap-2 text-green-700 dark:text-green-400">
+                                    <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                <span class="text-sm">Relevant content is sent to the configured AI provider needed for the feature you use</span>
+                                </div>
+                                <div class="flex items-start gap-2 text-green-700 dark:text-green-400">
+                                    <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
                                 <span class="text-sm">Transmission is encrypted</span>
+                                </div>
+                                <div class="flex items-start gap-2 text-green-700 dark:text-green-400">
+                                    <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                <span class="text-sm">Different workflows may call Anthropic, OpenAI, or both</span>
+                                </div>
                             </div>
-                            <div class="flex items-start gap-2 text-green-700 dark:text-green-400">
-                                <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="text-sm">We use Anthropic's API with zero-retention settings</span>
-                            </div>
-                        </div>
                         <div class="space-y-2">
                             <div class="flex items-start gap-2 text-red-600 dark:text-red-400">
                                 <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                <span class="text-sm">Your data is NOT used to train AI models</span>
+                                <span class="text-sm">Do not paste information your office would not send to an external processor</span>
                             </div>
                             <div class="flex items-start gap-2 text-red-600 dark:text-red-400">
                                 <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                <span class="text-sm">Your data is NOT stored by Anthropic after processing</span>
+                                <span class="text-sm">AI output can be wrong and still needs human review</span>
                             </div>
                             <div class="flex items-start gap-2 text-red-600 dark:text-red-400">
                                 <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                                <span class="text-sm">Your data is NOT visible to Anthropic employees</span>
-                            </div>
-                            <div class="flex items-start gap-2 text-red-600 dark:text-red-400">
-                                <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                <span class="text-sm">Your data is NOT shared with any third parties</span>
+                                <span class="text-sm">Provider-specific retention and privacy terms should be reviewed separately from this product overview</span>
                             </div>
                         </div>
                     </div>
@@ -261,6 +268,7 @@
                         <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">📄 Documentation</p>
                         <div class="space-y-2">
                             <a href="https://www.anthropic.com/api-data-privacy" target="_blank" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">Anthropic API Data Policy →</a>
+                            <a href="https://openai.com/policies/how-your-data-is-used-to-improve-model-performance/" target="_blank" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">OpenAI API data controls →</a>
                             <a href="#" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">LegiDash Privacy Policy →</a>
                             <a href="#" class="block text-indigo-600 dark:text-indigo-400 hover:underline text-sm">LegiDash Terms of Service →</a>
                         </div>
@@ -500,6 +508,5 @@
     </div>
     @endif
 </div>
-
 
 
