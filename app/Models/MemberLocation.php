@@ -91,4 +91,9 @@ class MemberLocation extends Model
 
         return $labels[$this->timezone] ?? $this->timezone;
     }
+
+    public function isActivityExpired(): bool
+    {
+        return $this->activity_until !== null && $this->activity_until->isPast();
+    }
 }

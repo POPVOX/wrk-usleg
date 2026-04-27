@@ -36,16 +36,17 @@ class OfficeOverview extends Component
     public function getOfficeMetricsProperty()
     {
         return [
-            'active_issues' => Issue::where('status', 'Active')->count(),
+            'active_issues' => Issue::active()->count(),
             'meetings_this_week' => Meeting::whereBetween('meeting_date', [
                 Carbon::now()->startOfWeek(),
                 Carbon::now()->endOfWeek()
             ])->count(),
-            'pending_actions' => Commitment::where('status', '!=', 'completed')->count(),
-            'overdue_actions' => Commitment::where('status', '!=', 'completed')
+            'pending_actions' => Commitment::where('status', 'open')->count(),
+            'overdue_actions' => Commitment::where('status', 'open')
                 ->where('due_date', '<', Carbon::now())->count(),
-            'priority_issues' => Issue::whereIn('priority_level', ['Member Priority', 'Office Priority'])
-                ->where('status', '!=', 'Completed')->count(),
+            'priority_issues' => Issue::dashboardPriority()
+                ->incomplete()
+                ->count(),
         ];
     }
 
@@ -69,18 +70,15 @@ class OfficeOverview extends Component
      */
     public function getPriorityIssuesProperty()
     {
-        return Issue::whereIn('priority_level', ['Member Priority', 'Office Priority'])
-            ->where('status', '!=', 'Completed')
+        return Issue::dashboardPriority()
+            ->incomplete()
             ->with([
                 'staff',
                 'milestones' => function ($query) {
                     $query->where('completed', false)->orderBy('target_date');
                 }
             ])
-            ->orderByRaw("CASE 
-                WHEN priority_level = 'Member Priority' THEN 1 
-                WHEN priority_level = 'Office Priority' THEN 2 
-                ELSE 3 END")
+            ->orderByDashboardPriority()
             ->take(10)
             ->get();
     }
@@ -90,7 +88,7 @@ class OfficeOverview extends Component
      */
     public function getUpcomingDeadlinesProperty()
     {
-        $commitments = Commitment::where('status', '!=', 'completed')
+        $commitments = Commitment::where('status', 'open')
             ->where('due_date', '>=', Carbon::now())
             ->where('due_date', '<=', Carbon::now()->addDays(14))
             ->with(['meeting', 'assignedTo'])
@@ -101,9 +99,9 @@ class OfficeOverview extends Component
                 return [
                     'type' => 'commitment',
                     'icon' => '✓',
-                    'description' => $c->commitment,
+                    'description' => $c->description,
                     'due_date' => $c->due_date,
-                    'assigned_to' => $c->assignedTo->name ?? 'Unassigned',
+                    'assigned_to' => $c->assignee?->name ?? 'Unassigned',
                     'meeting' => $c->meeting?->title,
                     'is_overdue' => $c->due_date->isPast(),
                 ];

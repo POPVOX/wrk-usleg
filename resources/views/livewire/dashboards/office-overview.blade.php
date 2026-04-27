@@ -146,7 +146,7 @@
                                         <p class="font-medium text-gray-900 dark:text-white truncate">{{ $issue->name }}</p>
                                         <div class="flex items-center mt-1 space-x-2">
                                             <span class="px-2 py-0.5 text-xs rounded-full 
-                                                    @if($issue->priority_level === 'Member Priority') bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
+                                                    @if($issue->isPrimaryPriority()) bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400
                                                     @else bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400
                                                     @endif
                                                 ">

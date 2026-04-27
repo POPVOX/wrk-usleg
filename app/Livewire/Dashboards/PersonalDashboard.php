@@ -7,7 +7,6 @@ use Livewire\Component;
 use App\Models\Meeting;
 use App\Models\Issue;
 use App\Models\Commitment;
-use App\Models\MemberLocation;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -52,13 +51,8 @@ class PersonalDashboard extends Component
         return Issue::whereHas('staff', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })
-            ->where('status', '!=', 'Completed')
-            ->orderByRaw("CASE 
-            WHEN priority_level = 'Member Priority' THEN 1 
-            WHEN priority_level = 'Office Priority' THEN 2 
-            WHEN priority_level = 'High' THEN 3
-            WHEN priority_level = 'Medium' THEN 4
-            ELSE 5 END")
+            ->incomplete()
+            ->orderByDashboardPriority()
             ->take(8)
             ->get();
     }
@@ -71,7 +65,7 @@ class PersonalDashboard extends Component
         $userId = Auth::id();
 
         return Commitment::where('assigned_to', $userId)
-            ->where('status', '!=', 'completed')
+            ->where('status', 'open')
             ->with(['meeting', 'assignedTo'])
             ->orderByRaw("CASE WHEN due_date < ? THEN 0 ELSE 1 END", [Carbon::now()])
             ->orderBy('due_date')
@@ -95,7 +89,7 @@ class PersonalDashboard extends Component
             ->where(function ($query) {
                 // Meetings that might involve the Member
                 $query->whereHas('issues', function ($q) {
-                    $q->where('priority_level', 'Member Priority');
+                    $q->memberFocusedPriority();
                 })
                     ->orWhere('title', 'like', '%Member%')
                     ->orWhere('title', 'like', '%Boss%');
@@ -159,7 +153,7 @@ class PersonalDashboard extends Component
         $userId = Auth::id();
 
         return Commitment::where('assigned_to', $userId)
-            ->where('status', '!=', 'completed')
+            ->where('status', 'open')
             ->where('due_date', '<', Carbon::now())
             ->count();
     }

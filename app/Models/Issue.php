@@ -71,6 +71,16 @@ class Issue extends Model
         'Top Priority' => 'Top Priority',
     ];
 
+    public const PRIMARY_PRIORITY_LEVELS = [
+        'Top Priority',
+        'Member Priority',
+    ];
+
+    public const SECONDARY_PRIORITY_LEVELS = [
+        'District Priority',
+        'Office Priority',
+    ];
+
     // Relationships
     public function meetings(): BelongsToMany
     {
@@ -275,7 +285,9 @@ class Issue extends Model
     public function getPriorityColorAttribute(): string
     {
         return match ($this->priority_level) {
+            'Member Priority',
             'Top Priority' => 'bg-red-100 text-red-800',
+            'Office Priority',
             'District Priority' => 'bg-amber-100 text-amber-800',
             'Tracking' => 'bg-gray-100 text-gray-800',
             default => 'bg-gray-100 text-gray-800',
@@ -288,9 +300,53 @@ class Issue extends Model
         return $query->where('status', 'active');
     }
 
+    public function scopeActiveOrPlanning($query)
+    {
+        return $query->whereIn('status', ['active', 'planning']);
+    }
+
+    public function scopeIncomplete($query)
+    {
+        return $query->where('status', '!=', 'completed');
+    }
+
+    public function scopeDashboardPriority($query)
+    {
+        return $query->whereIn('priority_level', array_merge(
+            self::PRIMARY_PRIORITY_LEVELS,
+            self::SECONDARY_PRIORITY_LEVELS,
+        ));
+    }
+
+    public function scopeMemberFocusedPriority($query)
+    {
+        return $query->whereIn('priority_level', self::PRIMARY_PRIORITY_LEVELS);
+    }
+
+    public function scopeOrderByDashboardPriority($query)
+    {
+        return $query->orderByRaw("CASE
+            WHEN priority_level IN ('Top Priority', 'Member Priority') THEN 1
+            WHEN priority_level IN ('District Priority', 'Office Priority') THEN 2
+            WHEN priority_level = 'Tracking' THEN 3
+            WHEN priority_level = 'High' THEN 4
+            WHEN priority_level = 'Medium' THEN 5
+            ELSE 6 END");
+    }
+
     public function scopeByPriority($query, string $priority)
     {
         return $query->where('priority_level', $priority);
+    }
+
+    public function isPrimaryPriority(): bool
+    {
+        return in_array($this->priority_level, self::PRIMARY_PRIORITY_LEVELS, true);
+    }
+
+    public function isSecondaryPriority(): bool
+    {
+        return in_array($this->priority_level, self::SECONDARY_PRIORITY_LEVELS, true);
     }
 
     // AI Status Methods
@@ -340,6 +396,5 @@ class Issue extends Model
         return $this->milestones()->where('status', 'completed')->count();
     }
 }
-
 
 
