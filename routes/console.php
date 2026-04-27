@@ -19,3 +19,9 @@ Schedule::command('congress:sync')
     ->twiceDaily(9, 17)
     ->withoutOverlapping()
     ->runInBackground();
+
+// Run automated press monitoring each hour.
+Schedule::command('press:monitor')
+    ->hourly()
+    ->withoutOverlapping()
+    ->runInBackground();

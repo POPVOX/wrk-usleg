@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Media;
 
+use App\Jobs\RunMediaMonitor;
+use App\Models\MediaMonitor;
 use App\Models\PressClip;
 use App\Models\Pitch;
 use App\Models\Inquiry;
@@ -42,7 +44,9 @@ class MediaIndex extends Component
     public bool $showClipModal = false;
     public bool $showPitchModal = false;
     public bool $showInquiryModal = false;
+    public bool $showMonitorForm = false;
     public ?int $editingId = null;
+    public ?int $editingMonitorId = null;
 
     // Clip form
     public array $clipForm = [];
@@ -52,6 +56,9 @@ class MediaIndex extends Component
 
     // Inquiry form
     public array $inquiryForm = [];
+
+    // Monitor form
+    public array $monitorForm = [];
 
     protected $queryString = [
         'activeTab' => ['except' => 'dashboard'],
@@ -64,6 +71,7 @@ class MediaIndex extends Component
         $this->resetClipForm();
         $this->resetPitchForm();
         $this->resetInquiryForm();
+        $this->resetMonitorForm();
     }
 
     public function setTab(string $tab): void
@@ -468,6 +476,153 @@ class MediaIndex extends Component
     public function getTeamMembersProperty()
     {
         return User::orderBy('name')->get();
+    }
+
+    public function getMonitorsProperty()
+    {
+        return MediaMonitor::with(['issue', 'topic', 'creator'])
+            ->latest()
+            ->get();
+    }
+
+    public function getMonitorSummaryProperty(): array
+    {
+        $monitors = $this->monitors;
+
+        return [
+            'active' => $monitors->where('is_active', true)->count(),
+            'total' => $monitors->count(),
+            'due' => $monitors->filter(fn(MediaMonitor $monitor) => $monitor->isDue())->count(),
+        ];
+    }
+
+    public function getCanManageMonitorsProperty(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ($user->isManagement() || $user->isSuperAdmin());
+    }
+
+    // ===== Monitor Actions =====
+
+    public function openMonitorForm(?int $id = null): void
+    {
+        if (!$this->authorizeMonitorManagement()) {
+            return;
+        }
+
+        $this->activeTab = 'monitors';
+        $this->showMonitorForm = true;
+
+        if (!$id) {
+            $this->editingMonitorId = null;
+            $this->resetMonitorForm();
+            return;
+        }
+
+        $monitor = MediaMonitor::findOrFail($id);
+        $this->editingMonitorId = $monitor->id;
+        $this->monitorForm = [
+            'name' => $monitor->name,
+            'query' => $monitor->query,
+            'monitor_type' => $monitor->monitor_type,
+            'cadence' => $monitor->cadence,
+            'issue_id' => $monitor->issue_id,
+            'topic_id' => $monitor->topic_id,
+            'auto_approve' => $monitor->auto_approve,
+            'is_active' => $monitor->is_active,
+        ];
+    }
+
+    public function cancelMonitorForm(): void
+    {
+        $this->showMonitorForm = false;
+        $this->editingMonitorId = null;
+        $this->resetMonitorForm();
+    }
+
+    public function saveMonitor(): void
+    {
+        if (!$this->authorizeMonitorManagement()) {
+            return;
+        }
+
+        $this->monitorForm['issue_id'] = $this->monitorForm['issue_id'] ?: null;
+        $this->monitorForm['topic_id'] = $this->monitorForm['topic_id'] ?: null;
+
+        $validated = $this->validate([
+            'monitorForm.name' => 'required|string|max:255',
+            'monitorForm.query' => 'required|string|max:255',
+            'monitorForm.monitor_type' => 'required|in:member,topic,issue,custom',
+            'monitorForm.cadence' => 'required|in:hourly,three_times_daily,daily',
+            'monitorForm.issue_id' => 'nullable|exists:issues,id',
+            'monitorForm.topic_id' => 'nullable|exists:topics,id',
+            'monitorForm.auto_approve' => 'boolean',
+            'monitorForm.is_active' => 'boolean',
+        ]);
+
+        $data = $validated['monitorForm'];
+
+        if ($this->editingMonitorId) {
+            MediaMonitor::findOrFail($this->editingMonitorId)->update($data);
+            $message = 'Media monitor updated.';
+        } else {
+            MediaMonitor::create($data + [
+                'source_type' => 'google_news_rss',
+                'created_by' => auth()->id(),
+            ]);
+            $message = 'Media monitor created.';
+        }
+
+        $this->cancelMonitorForm();
+        $this->dispatch('notify', type: 'success', message: $message);
+    }
+
+    public function toggleMonitor(int $id): void
+    {
+        if (!$this->authorizeMonitorManagement()) {
+            return;
+        }
+
+        $monitor = MediaMonitor::findOrFail($id);
+        $monitor->update(['is_active' => !$monitor->is_active]);
+
+        $this->dispatch(
+            'notify',
+            type: 'success',
+            message: $monitor->is_active ? 'Monitor enabled.' : 'Monitor paused.'
+        );
+    }
+
+    public function deleteMonitor(int $id): void
+    {
+        if (!$this->authorizeMonitorManagement()) {
+            return;
+        }
+
+        MediaMonitor::findOrFail($id)->delete();
+        $this->dispatch('notify', type: 'success', message: 'Monitor deleted.');
+    }
+
+    public function runMonitorNow(int $id): void
+    {
+        if (!$this->authorizeMonitorManagement()) {
+            return;
+        }
+
+        $monitor = MediaMonitor::findOrFail($id);
+
+        try {
+            RunMediaMonitor::dispatchSync($monitor);
+            $this->dispatch('notify', type: 'success', message: "Monitor '{$monitor->name}' ran successfully.");
+        } catch (\Throwable $e) {
+            Log::error('Manual media monitor run failed', [
+                'monitor_id' => $monitor->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            $this->dispatch('notify', type: 'error', message: 'Monitor run failed. Check the last error column.');
+        }
     }
 
     // ===== Clip Actions =====
@@ -1282,6 +1437,31 @@ Return ONLY the JSON object, no other text.";
         ];
     }
 
+    protected function resetMonitorForm(): void
+    {
+        $this->monitorForm = [
+            'name' => '',
+            'query' => '',
+            'monitor_type' => 'member',
+            'cadence' => 'hourly',
+            'issue_id' => null,
+            'topic_id' => null,
+            'auto_approve' => false,
+            'is_active' => true,
+        ];
+    }
+
+    protected function authorizeMonitorManagement(): bool
+    {
+        if ($this->canManageMonitors) {
+            return true;
+        }
+
+        $this->dispatch('notify', type: 'error', message: 'You do not have permission to manage monitors.');
+
+        return false;
+    }
+
 
     public function closeModal(): void
     {
@@ -1310,6 +1490,9 @@ Return ONLY the JSON object, no other text.";
             'topics' => $this->topics,
             'issues' => $this->issues,
             'teamMembers' => $this->teamMembers,
+            'monitors' => $this->monitors,
+            'monitorSummary' => $this->monitorSummary,
+            'canManageMonitors' => $this->canManageMonitors,
         ]);
     }
 }

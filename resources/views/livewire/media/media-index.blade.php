@@ -62,6 +62,14 @@
                 <span
                     class="ml-1.5 px-1.5 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">{{ $outlets->count() }}</span>
             </button>
+            <button wire:click="setTab('monitors')"
+                class="pb-3 text-sm font-medium border-b-2 transition whitespace-nowrap {{ $activeTab === 'monitors' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400' }}">
+                Monitors
+                @if(($monitorSummary['active'] ?? 0) > 0)
+                    <span
+                        class="ml-1.5 px-1.5 py-0.5 text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full">{{ $monitorSummary['active'] }}</span>
+                @endif
+            </button>
         </nav>
     </div>
 
@@ -95,6 +103,11 @@
     {{-- Outlets Tab --}}
     @if($activeTab === 'outlets')
         @include('livewire.media.partials.outlets-tab')
+    @endif
+
+    {{-- Monitors Tab --}}
+    @if($activeTab === 'monitors')
+        @include('livewire.media.partials.monitors-tab')
     @endif
 
     {{-- Clip Modal --}}
