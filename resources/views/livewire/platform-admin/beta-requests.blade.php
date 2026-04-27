@@ -1,4 +1,47 @@
 <div class="p-8">
+    <script>
+        window.copyBetaInviteLink = async function (inputId) {
+            const input = document.getElementById(inputId);
+
+            if (!input) {
+                window.dispatchEvent(new CustomEvent('notify', {
+                    detail: { type: 'error', message: 'Invite link field could not be found.' }
+                }));
+                return;
+            }
+
+            const value = input.value;
+
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(value);
+                } else {
+                    input.removeAttribute('readonly');
+                    input.select();
+                    input.setSelectionRange(0, value.length);
+                    const copied = document.execCommand('copy');
+                    input.setAttribute('readonly', 'readonly');
+                    if (!copied) {
+                        throw new Error('execCommand copy failed');
+                    }
+                }
+
+                window.dispatchEvent(new CustomEvent('notify', {
+                    detail: { type: 'success', message: 'Invite link copied to clipboard.' }
+                }));
+            } catch (error) {
+                input.removeAttribute('readonly');
+                input.select();
+                input.setSelectionRange(0, value.length);
+                input.setAttribute('readonly', 'readonly');
+
+                window.dispatchEvent(new CustomEvent('notify', {
+                    detail: { type: 'info', message: 'Clipboard copy was blocked. The invite link is selected so you can copy it manually.' }
+                }));
+            }
+        };
+    </script>
+
     {{-- Header --}}
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-white">Beta Requests</h1>
@@ -22,7 +65,7 @@
                     >
                     <button
                         type="button"
-                        onclick="navigator.clipboard.writeText(document.getElementById('beta-invite-link').value)"
+                        onclick="window.copyBetaInviteLink('beta-invite-link')"
                         class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
                     >
                         Copy link
@@ -186,6 +229,28 @@
                         <button wire:click="decline({{ $request->id }})" class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm rounded-lg transition-colors">
                             Decline
                         </button>
+                    </div>
+                @endif
+
+                @if($generatedInviteRequestId === $request->id && $generatedInviteUrl)
+                    <div class="mt-4 rounded-lg border border-indigo-800 bg-indigo-950/30 p-3">
+                        <p class="mb-2 text-sm font-medium text-indigo-200">Invite link</p>
+                        <div class="flex flex-col gap-2 lg:flex-row lg:items-center">
+                            <input
+                                id="beta-invite-link-inline-{{ $request->id }}"
+                                type="text"
+                                readonly
+                                value="{{ $generatedInviteUrl }}"
+                                class="w-full rounded-lg border border-indigo-700 bg-gray-900 px-3 py-2 text-sm text-white"
+                            >
+                            <button
+                                type="button"
+                                onclick="window.copyBetaInviteLink('beta-invite-link-inline-{{ $request->id }}')"
+                                class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+                            >
+                                Copy link
+                            </button>
+                        </div>
                     </div>
                 @endif
             </div>

@@ -65,3 +65,29 @@ it('declining a beta request clears any active invite', function () {
     expect($request->invite_token)->toBeNull();
     expect($request->declined_by)->toBe($admin->id);
 });
+
+it('super admins can reveal an existing invite link for an approved request', function () {
+    $admin = User::factory()->create([
+        'is_super_admin' => true,
+    ]);
+
+    $request = BetaRequestModel::create([
+        'full_name' => 'Taylor Example',
+        'email' => 'taylor@example.com',
+        'role_type' => 'staff_member',
+        'official_name' => 'Representative Example',
+        'government_level' => 'us_congress',
+        'state' => 'VA',
+        'primary_interest' => 'media_tracking',
+        'status' => 'approved',
+        'invite_token' => 'existing-token',
+        'invite_expires_at' => now()->addDays(14),
+    ]);
+
+    $this->actingAs($admin);
+
+    Livewire::test(BetaRequests::class)
+        ->call('showInvite', $request->id)
+        ->assertSet('generatedInviteRequestId', $request->id)
+        ->assertSet('generatedInviteUrl', route('register', ['invite' => 'existing-token'], absolute: true));
+});

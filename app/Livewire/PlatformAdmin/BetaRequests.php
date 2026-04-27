@@ -113,6 +113,7 @@ class BetaRequests extends Component
 
         $this->generatedInviteRequestId = $request->id;
         $this->generatedInviteUrl = $this->buildInviteUrl($request);
+        $this->dispatch('notify', type: 'success', message: 'Invite link is ready below this request.');
     }
 
     public function decline(int $requestId): void
